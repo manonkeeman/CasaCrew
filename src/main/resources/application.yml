@@ -1,0 +1,107 @@
+spring:
+  application:
+    name: villa-vredestein-bac
+
+  profiles:
+
+    active: ${SPRING_PROFILES_ACTIVE:prod}
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/villavredestein}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+
+  sql:
+    init:
+      mode: ${SQL_INIT_MODE:never}
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  health:
+    mail:
+      enabled: false
+
+seed:
+  enabled: ${SEED_ENABLED:false}
+  admin:
+    email: ${SEED_ADMIN_EMAIL:}
+    password: ${SEED_ADMIN_PASSWORD:}
+  cleaner:
+    email: ${SEED_CLEANER_EMAIL:}
+    password: ${SEED_CLEANER_PASSWORD:}
+  student:
+    emails: ${SEED_STUDENT_EMAILS:}
+    password: ${SEED_STUDENT_PASSWORD:}
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    org.springframework.security: INFO
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  upload-dir: ${APP_UPLOAD_DIR:uploads}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  mail:
+    enabled: ${MAIL_ENABLED:true}
+    from: ${MAIL_FROM:${MAIL_USERNAME:no-reply@villavredestein.com}}
+    bcc:
+      admin: ${MAIL_BCC_ADMIN:}
+  rent:
+    amount: ${RENT_AMOUNT:350.00}
+  password-reset:
+    expiry-minutes: ${PASSWORD_RESET_EXPIRY_MINUTES:30}
+
+jwt:
+  secret: ${JWT_SECRET:}
+  expiry-seconds: ${JWT_EXPIRY_SECONDS:3600}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:}
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  whatsapp:
+    from: ${TWILIO_WHATSAPP_FROM:}
+    admin-numbers: ${TWILIO_WHATSAPP_ADMIN_NUMBERS:+31625015299,+31624766568}
+
+bunq:
+  me:
+    username: ${BUNQ_ME_USERNAME:MaximStaal}
+

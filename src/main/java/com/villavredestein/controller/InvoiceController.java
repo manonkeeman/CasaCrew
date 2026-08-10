@@ -1,0 +1,96 @@
+package com.villavredestein.controller;
+
+import com.villavredestein.dto.InvoiceRequestDTO;
+import com.villavredestein.dto.InvoiceResponseDTO;
+import com.villavredestein.service.InvoiceService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@Validated
+@RestController
+@RequestMapping(value = "/api/invoices", produces = MediaType.APPLICATION_JSON_VALUE)
+public class InvoiceController {
+
+    private final InvoiceService invoiceService;
+
+    public InvoiceController(InvoiceService invoiceService) {
+        this.invoiceService = invoiceService;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<InvoiceResponseDTO>> getAllInvoices() {
+        return ResponseEntity.ok(invoiceService.getAllInvoices());
+    }
+
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @GetMapping("/me")
+    public ResponseEntity<List<InvoiceResponseDTO>> getMyInvoices(Authentication authentication) {
+        return ResponseEntity.ok(invoiceService.getInvoicesForStudent(authentication.getName()));
+    }
+
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @GetMapping("/{id}")
+    public ResponseEntity<InvoiceResponseDTO> getInvoiceById(
+            @PathVariable @Positive Long id,
+            Authentication authentication
+    ) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return ResponseEntity.ok(invoiceService.getInvoiceByIdForCaller(id, authentication.getName(), isAdmin));
+    }
+
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> downloadInvoicePdf(
+            @PathVariable @Positive Long id,
+            Authentication authentication
+    ) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        byte[] pdf = invoiceService.generatePdf(id, authentication.getName(), isAdmin);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename("factuur-" + id + ".pdf").build()
+        );
+        return ResponseEntity.ok().headers(headers).body(pdf);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<InvoiceResponseDTO> createInvoice(@Valid @RequestBody InvoiceRequestDTO request) {
+        InvoiceResponseDTO created = invoiceService.createInvoice(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<InvoiceResponseDTO> updateInvoiceStatus(
+            @PathVariable @Positive Long id,
+            @RequestParam @NotBlank String status
+    ) {
+        String normalizedStatus = status.trim().toUpperCase();
+        return ResponseEntity.ok(invoiceService.updateStatus(id, normalizedStatus));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteInvoice(@PathVariable @Positive Long id) {
+        invoiceService.deleteInvoice(id);
+        return ResponseEntity.noContent().build();
+    }
+}

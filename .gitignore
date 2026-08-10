@@ -1,0 +1,56 @@
+# ==========================================
+# Build output
+# ==========================================
+target/
+build/
+dist/
+.nbbuild/
+nbdist/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ==========================================
+# IDE & project settings
+# ==========================================
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.factorypath
+.settings/
+.springBeans
+.sts4-cache
+/.vscode/
+/nbproject/private/
+.DS_Store
+shelf/
+workspace.xml
+.env
+
+# ==========================================
+# Local/generated data
+# ==========================================
+uploads/
+!src/main/resources/static/uploads/
+*.log
+*.tmp
+*.bak
+
+# ==========================================
+# App secrets & config files
+# ==========================================
+# Never commit credentials
+src/main/resources/application.yml
+src/main/resources/application.properties
+
+# Allow sample config for others
+!src/main/resources/application.yml
+
+# ==========================================
+# API / Postman / SQL
+# ==========================================
+!*.postman_collection.json
+!postman/*.json

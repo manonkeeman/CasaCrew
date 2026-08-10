@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: ${VV_TEST_DB_URL:jdbc:postgresql://localhost:5432/vv_test}
+    username: ${VV_TEST_DB_USERNAME:postgres}
+    password: ${VV_TEST_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  test:
+    database:
+      replace: none
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  sql:
+    init:
+      mode: never
+
+  main:
+    allow-bean-definition-overriding: true
+
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0cy1vbmx5LTMyYnl0ZXM=
+  expiry-seconds: 3600
+
+app:
+  upload-dir: ${APP_UPLOAD_DIR:./target/test-uploads}
+  mail:
+    enabled: false
+    from: no-reply@test.local
+    bcc:
+      admin: ""
+
+logging:
+  level:
+    org.springframework: WARN
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql: OFF
