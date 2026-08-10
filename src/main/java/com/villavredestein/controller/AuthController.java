@@ -4,9 +4,11 @@ import com.villavredestein.dto.GoogleLoginRequestDTO;
 import com.villavredestein.dto.LoginRequestDTO;
 import com.villavredestein.dto.LoginResponseDTO;
 import com.villavredestein.dto.UserResponseDTO;
-import com.villavredestein.security.JwtService;
+import com.villavredestein.security.SessionAuthenticationFilter;
+import com.villavredestein.service.AuthSessionService;
 import com.villavredestein.service.GoogleTokenVerifierService;
 import com.villavredestein.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,18 +36,18 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
+    private final AuthSessionService authSessionService;
     private final UserService userService;
     private final GoogleTokenVerifierService googleTokenVerifierService;
 
     public AuthController(
             AuthenticationManager authenticationManager,
-            JwtService jwtService,
+            AuthSessionService authSessionService,
             UserService userService,
             GoogleTokenVerifierService googleTokenVerifierService
     ) {
         this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
+        this.authSessionService = authSessionService;
         this.userService = userService;
         this.googleTokenVerifierService = googleTokenVerifierService;
     }
@@ -110,7 +112,7 @@ public class AuthController {
                 : roles.contains("ROLE_CLEANER") ? "ROLE_CLEANER"
                 : "ROLE_STUDENT";
 
-        String token = jwtService.generateToken(principalEmail, primaryRole);
+        AuthSessionService.SessionResult session = authSessionService.createSession(principalEmail);
 
         log.info("Login successful for {} with role {}", principalEmail, primaryRole);
 
@@ -122,7 +124,8 @@ public class AuthController {
                 displayUsername,
                 principalEmail,
                 primaryRole,
-                token,
+                session.token(),
+                session.expiresAt(),
                 me
         ));
     }
@@ -162,7 +165,7 @@ public class AuthController {
         }
 
         String primaryRole = "ROLE_" + roleStr;
-        String token = jwtService.generateToken(email, primaryRole);
+        AuthSessionService.SessionResult session = authSessionService.createSession(email);
 
         log.info("Google login successful for {} with role {}", email, primaryRole);
 
@@ -170,7 +173,17 @@ public class AuthController {
                 ? me.username()
                 : email;
 
-        return ResponseEntity.ok(new LoginResponseDTO(displayUsername, email, primaryRole, token, me));
+        return ResponseEntity.ok(new LoginResponseDTO(
+                displayUsername, email, primaryRole, session.token(), session.expiresAt(), me));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        Object token = request.getAttribute(SessionAuthenticationFilter.SESSION_TOKEN_ATTRIBUTE);
+        if (token instanceof String tokenString) {
+            authSessionService.revoke(tokenString);
+        }
+        return ResponseEntity.noContent().build();
     }
 
     private String normalizeEmail(String email) {

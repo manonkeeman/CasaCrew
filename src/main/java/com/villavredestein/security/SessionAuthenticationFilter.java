@@ -1,5 +1,7 @@
 package com.villavredestein.security;
 
+import com.villavredestein.model.User;
+import com.villavredestein.service.AuthSessionService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,18 +17,29 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
+import java.util.Set;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class SessionAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    public static final String SESSION_TOKEN_ATTRIBUTE = "authSessionToken";
+
+    private static final Logger log = LoggerFactory.getLogger(SessionAuthenticationFilter.class);
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtService jwtService;
+    private static final Set<String> PUBLIC_AUTH_PATHS = Set.of(
+            "/api/auth/login",
+            "/api/auth/google-login",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password"
+    );
+
+    private final AuthSessionService authSessionService;
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
-        this.jwtService = jwtService;
+    public SessionAuthenticationFilter(AuthSessionService authSessionService, UserDetailsService userDetailsService) {
+        this.authSessionService = authSessionService;
         this.userDetailsService = userDetailsService;
     }
 
@@ -48,14 +61,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String jwtToken = authHeader.substring(BEARER_PREFIX.length()).trim();
-        if (jwtToken.isBlank()) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String email = extractEmailSafely(jwtToken);
-        if (email == null || email.isBlank()) {
+        String token = authHeader.substring(BEARER_PREFIX.length()).trim();
+        if (token.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -65,20 +72,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!isValidToken(jwtToken, email)) {
+        Optional<User> userOpt = validateSafely(token);
+        if (userOpt.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        UserDetails userDetails = loadUserSafely(email);
+        UserDetails userDetails = loadUserSafely(userOpt.get().getEmail());
         if (userDetails == null) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if (!matchesUser(email, userDetails)) {
-            log.warn("JWT subject mismatch (token={}, userDetails={})",
-                    maskEmail(email), maskEmail(userDetails.getUsername()));
             filterChain.doFilter(request, response);
             return;
         }
@@ -88,6 +89,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        request.setAttribute(SESSION_TOKEN_ATTRIBUTE, token);
 
         filterChain.doFilter(request, response);
     }
@@ -97,7 +99,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         return "OPTIONS".equalsIgnoreCase(method)
-                || path.startsWith("/api/auth")
+                || PUBLIC_AUTH_PATHS.contains(path)
                 || path.startsWith("/h2-console")
                 || path.startsWith("/error")
                 || path.startsWith("/actuator/health")
@@ -105,25 +107,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/actuator/info");
     }
 
-    private String extractEmailSafely(String jwtToken) {
+    private Optional<User> validateSafely(String token) {
         try {
-            return jwtService.extractEmail(jwtToken);
+            return authSessionService.validateAndTouch(token);
         } catch (Exception exception) {
-            log.warn("JWT parsing failed: {}", exception.getMessage());
-            return null;
-        }
-    }
-
-    private boolean isValidToken(String jwtToken, String email) {
-        try {
-            boolean isValid = jwtService.validateToken(jwtToken);
-            if (!isValid) {
-                log.warn("Invalid JWT token for user {}", maskEmail(email));
-            }
-            return isValid;
-        } catch (Exception exception) {
-            log.warn("JWT validation failed for {}: {}", maskEmail(email), exception.getMessage());
-            return false;
+            log.warn("Session validation failed: {}", exception.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -131,14 +120,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             return userDetailsService.loadUserByUsername(email);
         } catch (Exception exception) {
-            log.warn("User referenced in token does not exist: {}", maskEmail(email));
+            log.warn("User referenced in session no longer exists: {}", maskEmail(email));
             return null;
         }
-    }
-
-    private boolean matchesUser(String email, UserDetails userDetails) {
-        return userDetails.getUsername() != null
-                && userDetails.getUsername().equalsIgnoreCase(email);
     }
 
     private String maskEmail(String email) {

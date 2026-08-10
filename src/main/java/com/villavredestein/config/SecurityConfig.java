@@ -1,6 +1,6 @@
 package com.villavredestein.config;
 
-import com.villavredestein.security.JwtAuthenticationFilter;
+import com.villavredestein.security.SessionAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -49,15 +49,15 @@ public class SecurityConfig {
 
     private static final List<String> EXPOSED_HEADERS = List.of("Authorization");
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final SessionAuthenticationFilter sessionAuthenticationFilter;
     private final String allowedOrigins;
 
     public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter,
+            SessionAuthenticationFilter sessionAuthenticationFilter,
             @Value("${app.cors.allowed-origins:http://localhost:5173,https://*.netlify.app,https://villavredestein.com,https://www.villavredestein.com}")
             String allowedOrigins
     ) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.sessionAuthenticationFilter = sessionAuthenticationFilter;
         this.allowedOrigins = allowedOrigins;
     }
 
@@ -130,7 +130,7 @@ public class SecurityConfig {
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

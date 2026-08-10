@@ -62,6 +62,7 @@ public class UserService implements UserDetailsService {
     private final DocumentRepository documentRepository;
     private final PaymentRepository paymentRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final AuthSessionService authSessionService;
     private final CleaningScheduleService cleaningScheduleService;
     private final Path uploadDir;
 
@@ -74,6 +75,7 @@ public class UserService implements UserDetailsService {
             DocumentRepository documentRepository,
             PaymentRepository paymentRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,
+            AuthSessionService authSessionService,
             @Lazy CleaningScheduleService cleaningScheduleService,
             @Value("${app.upload-dir:uploads}") String uploadDir
     ) {
@@ -85,6 +87,7 @@ public class UserService implements UserDetailsService {
         this.documentRepository = documentRepository;
         this.paymentRepository = paymentRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.authSessionService = authSessionService;
         this.cleaningScheduleService = cleaningScheduleService;
         this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
     }
@@ -182,6 +185,11 @@ public class UserService implements UserDetailsService {
         return currentUser().getId();
     }
 
+    @Transactional(readOnly = true)
+    public Long currentOrganizationId() {
+        return currentUser().getOrganization().getId();
+    }
+
     public UserResponseDTO changeRole(Long id, String newRole) {
         User.Role role = parseRole(newRole);
         validateAllowedRole(role, "newRole must be ADMIN, STUDENT or CLEANER");
@@ -271,6 +279,7 @@ public class UserService implements UserDetailsService {
         }
 
         me.setPassword(passwordEncoder.encode(newPassword));
+        authSessionService.revokeAllForUser(me);
     }
 
     public UserResponseDTO uploadMyProfilePhoto(MultipartFile file) {
@@ -335,6 +344,7 @@ public class UserService implements UserDetailsService {
         paymentRepository.deleteAll(paymentRepository.findByStudent(user));
 
         passwordResetTokenRepository.deleteAllByUser(user);
+        authSessionService.deleteAllForUser(user);
 
         userRepository.delete(user);
 

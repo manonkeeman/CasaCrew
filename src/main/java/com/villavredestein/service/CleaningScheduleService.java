@@ -1,9 +1,12 @@
 package com.villavredestein.service;
 
 import com.villavredestein.model.CleaningTask;
+import com.villavredestein.model.Organization;
 import com.villavredestein.model.User;
 import com.villavredestein.repository.CleaningTaskRepository;
+import com.villavredestein.repository.OrganizationRepository;
 import com.villavredestein.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +14,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Zolang er nog geen zelfregistratie is (fase 4), bestaat er precies één
+ * organisatie ("villa-vredestein", aangemaakt door de V4-backfill-migratie).
+ * Zodra fase 2 (deel B) services organization-bewust maakt via
+ * UserService.currentOrganizationId(), moet deze hardcoded lookup daarnaar
+ * verhuizen.
+ */
 @Service
 public class CleaningScheduleService {
+
+    private static final String DEFAULT_ORGANIZATION_SLUG = "villa-vredestein";
 
     private static final Logger log = LoggerFactory.getLogger(CleaningScheduleService.class);
 
@@ -32,15 +44,22 @@ public class CleaningScheduleService {
 
     private final UserRepository userRepository;
     private final CleaningTaskRepository cleaningTaskRepository;
+    private final OrganizationRepository organizationRepository;
 
     public CleaningScheduleService(UserRepository userRepository,
-                                   CleaningTaskRepository cleaningTaskRepository) {
+                                   CleaningTaskRepository cleaningTaskRepository,
+                                   OrganizationRepository organizationRepository) {
         this.userRepository = userRepository;
         this.cleaningTaskRepository = cleaningTaskRepository;
+        this.organizationRepository = organizationRepository;
     }
 
     @Transactional
     public void reseedNow() {
+        Organization organization = organizationRepository.findBySlugIgnoreCase(DEFAULT_ORGANIZATION_SLUG)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Standaardorganisatie '" + DEFAULT_ORGANIZATION_SLUG + "' niet gevonden -- draai de Flyway-migraties eerst"));
+
         List<User> students = userRepository.findByRole(User.Role.STUDENT)
                 .stream()
                 .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
@@ -48,7 +67,7 @@ public class CleaningScheduleService {
 
         int slots = students.size() + 1; // +1 voor de vrije week (Japan-slot)
 
-        cleaningTaskRepository.deleteAllTasks();
+        cleaningTaskRepository.deleteAllTasksForOrganization(organization.getId());
 
         List<CleaningTask> tasks = new java.util.ArrayList<>(slots * 4);
         for (int week = 1; week <= slots; week++) {
@@ -58,6 +77,7 @@ public class CleaningScheduleService {
 
                 CleaningTask task = new CleaningTask(
                         week, TASK_NAMES[taskIdx], TASK_DESCS[taskIdx], null);
+                task.setOrganization(organization);
                 task.setAssignedTo(assignee);
                 task.setCompleted(false);
                 tasks.add(task);

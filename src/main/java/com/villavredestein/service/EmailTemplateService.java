@@ -2,8 +2,11 @@ package com.villavredestein.service;
 
 import com.villavredestein.model.EmailTemplate;
 import com.villavredestein.model.EmailTemplate.TemplateType;
+import com.villavredestein.model.Organization;
 import com.villavredestein.repository.EmailTemplateRepository;
+import com.villavredestein.repository.OrganizationRepository;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,16 +14,26 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Zolang er nog geen zelfregistratie is (fase 4), bestaat er precies één
+ * organisatie ("villa-vredestein", aangemaakt door de V4-backfill-migratie)
+ * en seedt deze service de default templates daarvoor. Zodra fase 2 (deel B)
+ * services organization-bewust maakt via UserService.currentOrganizationId(),
+ * moet deze hardcoded lookup daarnaar verhuizen.
+ */
 @Service
 @Transactional
 public class EmailTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailTemplateService.class);
+    private static final String DEFAULT_ORGANIZATION_SLUG = "villa-vredestein";
 
     private final EmailTemplateRepository repo;
+    private final OrganizationRepository organizationRepository;
 
-    public EmailTemplateService(EmailTemplateRepository repo) {
+    public EmailTemplateService(EmailTemplateRepository repo, OrganizationRepository organizationRepository) {
         this.repo = repo;
+        this.organizationRepository = organizationRepository;
     }
 
 
@@ -76,8 +89,14 @@ public class EmailTemplateService {
     }
 
     private void seed(TemplateType type, String subject, String body) {
-        if (!repo.existsByType(type)) {
-            repo.save(new EmailTemplate(type, subject, body));
+        Organization organization = organizationRepository.findBySlugIgnoreCase(DEFAULT_ORGANIZATION_SLUG)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Standaardorganisatie '" + DEFAULT_ORGANIZATION_SLUG + "' niet gevonden -- draai de Flyway-migraties eerst"));
+
+        if (!repo.existsByOrganization_IdAndType(organization.getId(), type)) {
+            EmailTemplate template = new EmailTemplate(type, subject, body);
+            template.setOrganization(organization);
+            repo.save(template);
             log.info("Seeded default email template for type={}", type);
         }
     }
