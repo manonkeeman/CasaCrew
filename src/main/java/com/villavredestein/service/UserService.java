@@ -136,10 +136,20 @@ public class UserService implements UserDetailsService {
     }
 
     /**
+     * Voor OrganizationService.registerNewOrganization(...): de eerste
+     * ADMIN van een zojuist aangemaakte organisatie. Net als bij
+     * seedUserIfMissing is er nog geen ingelogde gebruiker om de
+     * organisatie van af te leiden -- die wordt hier expliciet meegegeven.
+     */
+    public UserResponseDTO createFirstAdminForNewOrganization(String username, String email, String rawPassword, Organization organization) {
+        return createUser(username, email, rawPassword, User.Role.ADMIN, organization);
+    }
+
+    /**
      * Alleen voor de boot-time CommandLineRunner (VredesteinApplication):
      * er is op dat moment geen ingelogde gebruiker om de organisatie van af
-     * te leiden. Zolang er geen zelfregistratie is (fase 4) bestaat er
-     * precies één organisatie ("villa-vredestein", zie V4-backfill).
+     * te leiden, dus dit gebruikt bewust de standaardorganisatie
+     * ("villa-vredestein", zie V4-backfill) in plaats van currentUser().
      */
     public UserResponseDTO seedUserIfMissing(String username, String email, String rawPassword, User.Role role) {
         String normalizedEmail = normalizeEmail(email);
