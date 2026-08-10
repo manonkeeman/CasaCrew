@@ -2,6 +2,7 @@ package com.villavredestein.service;
 
 import com.villavredestein.dto.PaymentRequestDTO;
 import com.villavredestein.dto.PaymentResponseDTO;
+import com.villavredestein.model.Organization;
 import com.villavredestein.model.Payment;
 import com.villavredestein.model.User;
 import com.villavredestein.repository.PaymentRepository;
@@ -27,17 +28,31 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
 
+    private static final Long ORG_ID = 1L;
+
     @Mock PaymentRepository paymentRepository;
     @Mock UserRepository userRepository;
+    @Mock UserService userService;
     @InjectMocks PaymentService paymentService;
+
+    private void stubCurrentOrganizationId() {
+        when(userService.currentOrganizationId()).thenReturn(ORG_ID);
+    }
+
+    private Organization makeOrganization() {
+        Organization organization = new Organization("Villa Vredestein", "villa-vredestein");
+        ReflectionTestUtils.setField(organization, "id", ORG_ID);
+        return organization;
+    }
 
 
     @Test
     void getAllPayments_returnsMappedDtoList() {
+        stubCurrentOrganizationId();
         User student = makeStudent(1L, "student", "s@test.com");
         Payment p1 = makePayment(1L, new BigDecimal("100.00"), Payment.PaymentStatus.OPEN, student);
         Payment p2 = makePayment(2L, new BigDecimal("200.00"), Payment.PaymentStatus.PAID, student);
-        when(paymentRepository.findAllByOrderByIdDesc()).thenReturn(List.of(p2, p1));
+        when(paymentRepository.findByOrganization_IdOrderByIdDesc(ORG_ID)).thenReturn(List.of(p2, p1));
 
         List<PaymentResponseDTO> result = paymentService.getAllPayments();
 
@@ -48,7 +63,8 @@ class PaymentServiceTest {
 
     @Test
     void getAllPayments_empty_returnsEmptyList() {
-        when(paymentRepository.findAllByOrderByIdDesc()).thenReturn(List.of());
+        stubCurrentOrganizationId();
+        when(paymentRepository.findByOrganization_IdOrderByIdDesc(ORG_ID)).thenReturn(List.of());
 
         List<PaymentResponseDTO> result = paymentService.getAllPayments();
 
@@ -58,9 +74,11 @@ class PaymentServiceTest {
 
     @Test
     void getPaymentsForStudent_validEmail_returnsList() {
+        stubCurrentOrganizationId();
         User student = makeStudent(1L, "student", "s@test.com");
         Payment p = makePayment(1L, new BigDecimal("100.00"), Payment.PaymentStatus.OPEN, student);
-        when(paymentRepository.findByStudent_EmailIgnoreCaseOrderByIdDesc("s@test.com")).thenReturn(List.of(p));
+        when(paymentRepository.findByOrganization_IdAndStudent_EmailIgnoreCaseOrderByIdDesc(ORG_ID, "s@test.com"))
+                .thenReturn(List.of(p));
 
         List<PaymentResponseDTO> result = paymentService.getPaymentsForStudent("S@TEST.COM");
 
@@ -71,13 +89,13 @@ class PaymentServiceTest {
     @Test
     void getPaymentsForStudent_blankEmail_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> paymentService.getPaymentsForStudent("   "));
-        verify(paymentRepository, never()).findByStudent_EmailIgnoreCaseOrderByIdDesc(any());
+        verify(paymentRepository, never()).findByOrganization_IdAndStudent_EmailIgnoreCaseOrderByIdDesc(any(), any());
     }
 
     @Test
     void getPaymentsForStudent_nullEmail_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> paymentService.getPaymentsForStudent(null));
-        verify(paymentRepository, never()).findByStudent_EmailIgnoreCaseOrderByIdDesc(any());
+        verify(paymentRepository, never()).findByOrganization_IdAndStudent_EmailIgnoreCaseOrderByIdDesc(any(), any());
     }
 
 
@@ -114,6 +132,7 @@ class PaymentServiceTest {
 
     @Test
     void getPaymentById_found_returnsDto() {
+        stubCurrentOrganizationId();
         User student = makeStudent(1L, "student", "s@test.com");
         Payment p = makePayment(1L, new BigDecimal("100.00"), Payment.PaymentStatus.OPEN, student);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(p));
@@ -126,6 +145,7 @@ class PaymentServiceTest {
 
     @Test
     void getPaymentById_notFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(paymentRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> paymentService.getPaymentById(99L));
@@ -146,6 +166,8 @@ class PaymentServiceTest {
 
     @Test
     void createPayment_success_returnsDto() {
+        stubCurrentOrganizationId();
+        when(userService.currentOrganization()).thenReturn(makeOrganization());
         User student = makeStudent(1L, "student", "s@test.com");
         when(userRepository.findByEmailIgnoreCase("s@test.com")).thenReturn(Optional.of(student));
         Payment saved = makePayment(1L, new BigDecimal("150.00"), Payment.PaymentStatus.OPEN, student);
@@ -165,6 +187,7 @@ class PaymentServiceTest {
 
     @Test
     void createPayment_studentNotFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(userRepository.findByEmailIgnoreCase("notfound@test.com")).thenReturn(Optional.empty());
 
         PaymentRequestDTO dto = new PaymentRequestDTO();
@@ -185,6 +208,7 @@ class PaymentServiceTest {
 
     @Test
     void updateStatus_toPaid_setsPaidAtAndReturnsDto() {
+        stubCurrentOrganizationId();
         User student = makeStudent(1L, "student", "s@test.com");
         Payment p = makePayment(1L, new BigDecimal("100.00"), Payment.PaymentStatus.OPEN, student);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(p));
@@ -197,8 +221,10 @@ class PaymentServiceTest {
 
     @Test
     void updateStatus_fromPaidToOpen_clearsPaidAt() {
+        stubCurrentOrganizationId();
         User student = makeStudent(1L, "student", "s@test.com");
         Payment p = new Payment(new BigDecimal("100.00"), LocalDateTime.now(), Payment.PaymentStatus.PAID, "Test", student);
+        p.setOrganization(makeOrganization());
         ReflectionTestUtils.setField(p, "id", 1L);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(p));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -211,6 +237,7 @@ class PaymentServiceTest {
 
     @Test
     void updateStatus_notFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(paymentRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> paymentService.updateStatus(99L, "PAID"));
@@ -219,6 +246,7 @@ class PaymentServiceTest {
 
     @Test
     void deletePayment_success_deletesPayment() {
+        stubCurrentOrganizationId();
         User student = makeStudent(1L, "student", "s@test.com");
         Payment p = makePayment(1L, new BigDecimal("100.00"), Payment.PaymentStatus.OPEN, student);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(p));
@@ -229,6 +257,7 @@ class PaymentServiceTest {
 
     @Test
     void deletePayment_notFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(paymentRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> paymentService.deletePayment(99L));
@@ -244,12 +273,14 @@ class PaymentServiceTest {
 
     private User makeStudent(long id, String username, String email) {
         User user = new User(username, email, "hash", User.Role.STUDENT);
+        user.setOrganization(makeOrganization());
         ReflectionTestUtils.setField(user, "id", id);
         return user;
     }
 
     private Payment makePayment(long id, BigDecimal amount, Payment.PaymentStatus status, User student) {
         Payment p = new Payment(amount, null, status, "Test payment", student);
+        p.setOrganization(makeOrganization());
         ReflectionTestUtils.setField(p, "id", id);
         return p;
     }

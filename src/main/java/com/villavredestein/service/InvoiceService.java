@@ -30,19 +30,24 @@ public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final UserRepository userRepository;
     private final InvoicePdfService invoicePdfService;
+    private final UserService userService;
 
     public InvoiceService(InvoiceRepository invoiceRepository,
                           UserRepository userRepository,
-                          InvoicePdfService invoicePdfService) {
+                          InvoicePdfService invoicePdfService,
+                          UserService userService) {
         this.invoiceRepository = invoiceRepository;
         this.userRepository = userRepository;
         this.invoicePdfService = invoicePdfService;
+        this.userService = userService;
     }
 
 
     public InvoiceResponseDTO createInvoice(InvoiceRequestDTO dto) {
 
+        Long organizationId = userService.currentOrganizationId();
         User student = userRepository.findByEmailIgnoreCase(dto.getStudentEmail())
+                .filter(u -> u.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() ->
                         new EntityNotFoundException("Student niet gevonden: " + dto.getStudentEmail()));
 
@@ -59,6 +64,7 @@ public class InvoiceService {
                 InvoiceStatus.OPEN,
                 student
         );
+        invoice.setOrganization(userService.currentOrganization());
 
         if (invoiceRepository.existsByStudentAndInvoiceMonthAndInvoiceYear(student, invoice.getInvoiceMonth(), invoice.getInvoiceYear())) {
             throw new ResponseStatusException(
@@ -76,7 +82,7 @@ public class InvoiceService {
 
 
     public List<InvoiceResponseDTO> getAllInvoices() {
-        return invoiceRepository.findAllByOrderByIdDesc()
+        return invoiceRepository.findByOrganization_IdOrderByIdDesc(userService.currentOrganizationId())
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -164,7 +170,9 @@ public class InvoiceService {
 
 
     private Invoice findInvoiceOrThrow(Long id) {
+        Long organizationId = userService.currentOrganizationId();
         return invoiceRepository.findById(id)
+                .filter(i -> i.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() -> new EntityNotFoundException("Factuur niet gevonden: " + id));
     }
 

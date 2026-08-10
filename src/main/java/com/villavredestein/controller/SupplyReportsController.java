@@ -4,6 +4,7 @@ import com.villavredestein.model.SupplyReport;
 import com.villavredestein.model.User;
 import com.villavredestein.repository.SupplyReportRepository;
 import com.villavredestein.repository.UserRepository;
+import com.villavredestein.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +23,14 @@ public class SupplyReportsController {
 
     private final SupplyReportRepository supplyReportRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     public SupplyReportsController(SupplyReportRepository supplyReportRepository,
-                                   UserRepository userRepository) {
+                                   UserRepository userRepository,
+                                   UserService userService) {
         this.supplyReportRepository = supplyReportRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -34,7 +38,10 @@ public class SupplyReportsController {
     public ResponseEntity<List<SupplyReport>> getAll(Authentication auth) {
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (isAdmin) return ResponseEntity.ok(supplyReportRepository.findAllByOrderByReportedAtDesc());
+        if (isAdmin) {
+            return ResponseEntity.ok(
+                    supplyReportRepository.findByOrganization_IdOrderByReportedAtDesc(userService.currentOrganizationId()));
+        }
         User cleaner = resolveUser(auth.getName());
         return ResponseEntity.ok(supplyReportRepository.findByReportedByOrderByReportedAtDesc(cleaner));
     }
@@ -49,6 +56,7 @@ public class SupplyReportsController {
         User reporter = resolveUser(auth.getName());
         SupplyReport report = new SupplyReport();
         report.setReportedBy(reporter);
+        report.setOrganization(userService.currentOrganization());
         report.setItemName(itemName.trim());
         report.setNotes(body.get("notes"));
         if (body.get("urgency") != null) {
@@ -62,8 +70,7 @@ public class SupplyReportsController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SupplyReport> updateStatus(@PathVariable Long id,
                                                      @RequestBody Map<String, String> body) {
-        SupplyReport report = supplyReportRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rapport niet gevonden."));
+        SupplyReport report = findInCurrentOrganizationOrThrow(id);
         try {
             report.setStatus(SupplyReport.Status.valueOf(body.get("status").toUpperCase()));
         } catch (Exception e) {
@@ -76,9 +83,16 @@ public class SupplyReportsController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!supplyReportRepository.existsById(id)) return ResponseEntity.notFound().build();
-        supplyReportRepository.deleteById(id);
+        SupplyReport report = findInCurrentOrganizationOrThrow(id);
+        supplyReportRepository.delete(report);
         return ResponseEntity.noContent().build();
+    }
+
+    private SupplyReport findInCurrentOrganizationOrThrow(Long id) {
+        Long organizationId = userService.currentOrganizationId();
+        return supplyReportRepository.findById(id)
+                .filter(r -> r.getOrganization().getId().equals(organizationId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rapport niet gevonden."));
     }
 
     private User resolveUser(String email) {

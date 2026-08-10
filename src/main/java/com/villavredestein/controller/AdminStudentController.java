@@ -76,7 +76,7 @@ public class AdminStudentController {
 
     @GetMapping("/rooms/available")
     public ResponseEntity<List<String>> availableRooms() {
-        List<String> names = roomRepository.findByOccupantIsNullOrderByNameAsc()
+        List<String> names = roomRepository.findByOrganization_IdAndOccupantIsNullOrderByNameAsc(userService.currentOrganizationId())
                 .stream()
                 .map(Room::getName)
                 .toList();
@@ -129,7 +129,7 @@ public class AdminStudentController {
 
         Room room = null;
         if (!kamerNaam.isEmpty()) {
-            room = roomRepository.findByNameIgnoreCase(kamerNaam)
+            room = roomRepository.findByOrganization_IdAndNameIgnoreCase(userService.currentOrganizationId(), kamerNaam)
                     .orElseThrow(() -> new ResponseStatusException(
                             HttpStatus.BAD_REQUEST, "Kamer '" + kamerNaam + "' bestaat niet."));
             if (room.isOccupied()) {
@@ -201,8 +201,7 @@ public class AdminStudentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wachtwoord moet minimaal 8 tekens zijn.");
         }
 
-        User student = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gebruiker niet gevonden."));
+        User student = findStudentInCurrentOrganization(id);
 
         student.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(student);
@@ -216,8 +215,7 @@ public class AdminStudentController {
             @PathVariable @NotNull Long id,
             @RequestBody Map<String, Object> body) {
 
-        User student = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gebruiker niet gevonden."));
+        User student = findStudentInCurrentOrganization(id);
 
         if (body.containsKey("rentAmount") && body.get("rentAmount") != null) {
             student.setRentAmount(new BigDecimal(body.get("rentAmount").toString()));
@@ -233,6 +231,13 @@ public class AdminStudentController {
         userRepository.save(student);
         log.info("Admin updated student id={}", id);
         return ResponseEntity.ok(userService.getUserById(id).orElseThrow());
+    }
+
+    private User findStudentInCurrentOrganization(Long id) {
+        Long organizationId = userService.currentOrganizationId();
+        return userRepository.findById(id)
+                .filter(u -> u.getOrganization().getId().equals(organizationId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gebruiker niet gevonden."));
     }
 
     private String maskEmail(String email) {

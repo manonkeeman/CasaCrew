@@ -22,13 +22,16 @@ public class CleaningTaskService {
     private final CleaningTaskRepository taskRepository;
     private final UserRepository userRepository;
     private final CleaningScheduleService scheduleService;
+    private final UserService userService;
 
     public CleaningTaskService(CleaningTaskRepository taskRepository,
                                UserRepository userRepository,
-                               CleaningScheduleService scheduleService) {
+                               CleaningScheduleService scheduleService,
+                               UserService userService) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.scheduleService = scheduleService;
+        this.userService = userService;
     }
 
     // --------------------------------------------------------------
@@ -56,10 +59,11 @@ public class CleaningTaskService {
 
     public List<CleaningTaskResponseDTO> getAllTasksForRole(String role) {
         String callerRole = normalizeCallerRole(role);
+        Long organizationId = userService.currentOrganizationId();
 
         List<CleaningTask> tasks = "ADMIN".equals(callerRole)
-                ? taskRepository.findAllByOrderByWeekNumberAscIdAsc()
-                : taskRepository.findAccessibleForRole(callerRole);
+                ? taskRepository.findByOrganization_IdOrderByWeekNumberAscIdAsc(organizationId)
+                : taskRepository.findAccessibleForRoleInOrganization(organizationId, callerRole);
 
         return tasks.stream().map(this::toResponseDTO).toList();
     }
@@ -67,10 +71,11 @@ public class CleaningTaskService {
     public List<CleaningTaskResponseDTO> getTasksByWeekForRole(String role, int weekNumber) {
         int safeWeek = requireValidWeekNumber(weekNumber);
         String callerRole = normalizeCallerRole(role);
+        Long organizationId = userService.currentOrganizationId();
 
         List<CleaningTask> tasks = "ADMIN".equals(callerRole)
-                ? taskRepository.findByWeekNumberOrderByIdAsc(safeWeek)
-                : taskRepository.findAccessibleForRoleByWeek(callerRole, safeWeek);
+                ? taskRepository.findByOrganization_IdAndWeekNumberOrderByIdAsc(organizationId, safeWeek)
+                : taskRepository.findAccessibleForRoleByWeekInOrganization(organizationId, callerRole, safeWeek);
 
         return tasks.stream().map(this::toResponseDTO).toList();
     }
@@ -111,6 +116,7 @@ public class CleaningTaskService {
         task.setIncidentReport(dto.getIncidentReport());
         task.setDeadline(dto.getDueDate());
         task.setAssignedTo(resolveAssignee(dto.getAssignedTo()));
+        task.setOrganization(userService.currentOrganization());
 
         return toResponseDTO(taskRepository.save(task));
     }
@@ -183,7 +189,9 @@ public class CleaningTaskService {
     }
 
     private CleaningTask findTaskOrThrow(Long id) {
+        Long organizationId = userService.currentOrganizationId();
         return taskRepository.findById(id)
+                .filter(t -> t.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() -> new EntityNotFoundException("Taak niet gevonden: " + id));
     }
 

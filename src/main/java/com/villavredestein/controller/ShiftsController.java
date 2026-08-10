@@ -4,6 +4,7 @@ import com.villavredestein.model.Shift;
 import com.villavredestein.model.User;
 import com.villavredestein.repository.ShiftRepository;
 import com.villavredestein.repository.UserRepository;
+import com.villavredestein.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,16 +24,19 @@ public class ShiftsController {
 
     private final ShiftRepository shiftRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public ShiftsController(ShiftRepository shiftRepository, UserRepository userRepository) {
+    public ShiftsController(ShiftRepository shiftRepository, UserRepository userRepository, UserService userService) {
         this.shiftRepository = shiftRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Shift>> getAll() {
-        return ResponseEntity.ok(shiftRepository.findAllByOrderByShiftDateDescCheckInAtDesc());
+        return ResponseEntity.ok(
+                shiftRepository.findByOrganization_IdOrderByShiftDateDescCheckInAtDesc(userService.currentOrganizationId()));
     }
 
     @GetMapping("/me")
@@ -51,6 +55,7 @@ public class ShiftsController {
 
         Shift shift = new Shift();
         shift.setCleaner(cleaner);
+        shift.setOrganization(userService.currentOrganization());
         shift.setShiftDate(today);
         shift.setCheckInAt(Instant.now());
         if (body != null && body.get("notes") != null) shift.setNotes(body.get("notes"));

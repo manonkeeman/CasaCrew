@@ -96,7 +96,7 @@ class CleaningScheduleServiceTest {
         stubDefaultOrganization();
         User s1 = makeStudent(1, "student1", "student1@vv.com");
         User s2 = makeStudent(2, "desmond", "desmond@vv.com");
-        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(List.of(s1, s2));
+        when(userRepository.findByOrganization_IdAndRole(1L, User.Role.STUDENT)).thenReturn(List.of(s1, s2));
 
         cleaningScheduleService.reseedNow();
 
@@ -110,7 +110,7 @@ class CleaningScheduleServiceTest {
     @SuppressWarnings("unchecked")
     void reseedNow_withNoStudents_createsOneWeekFourTasks() {
         stubDefaultOrganization();
-        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(List.of());
+        when(userRepository.findByOrganization_IdAndRole(1L, User.Role.STUDENT)).thenReturn(List.of());
 
         cleaningScheduleService.reseedNow();
 
@@ -123,7 +123,7 @@ class CleaningScheduleServiceTest {
     @SuppressWarnings("unchecked")
     void reseedNow_deletesAllExistingTasksFirst() {
         stubDefaultOrganization();
-        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(List.of());
+        when(userRepository.findByOrganization_IdAndRole(1L, User.Role.STUDENT)).thenReturn(List.of());
 
         cleaningScheduleService.reseedNow();
 
@@ -137,7 +137,7 @@ class CleaningScheduleServiceTest {
     void reseedNow_withOneStudent_createsEightTasksTwoWeeks() {
         stubDefaultOrganization();
         User s1 = makeStudent(1, "student1", "student1@vv.com");
-        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(List.of(s1));
+        when(userRepository.findByOrganization_IdAndRole(1L, User.Role.STUDENT)).thenReturn(List.of(s1));
 
         cleaningScheduleService.reseedNow();
 
@@ -152,7 +152,7 @@ class CleaningScheduleServiceTest {
         stubDefaultOrganization();
         User s1 = makeStudent(1, "student1", "student1@vv.com");
         User s2 = makeStudent(2, "desmond", "desmond@vv.com");
-        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(List.of(s2, s1));
+        when(userRepository.findByOrganization_IdAndRole(1L, User.Role.STUDENT)).thenReturn(List.of(s2, s1));
 
         cleaningScheduleService.reseedNow();
 
@@ -170,7 +170,7 @@ class CleaningScheduleServiceTest {
     void reseedNow_taskNamesAreInDutch() {
         stubDefaultOrganization();
         User s1 = makeStudent(1, "student1", "student1@vv.com");
-        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(List.of(s1));
+        when(userRepository.findByOrganization_IdAndRole(1L, User.Role.STUDENT)).thenReturn(List.of(s1));
 
         cleaningScheduleService.reseedNow();
 
@@ -192,7 +192,7 @@ class CleaningScheduleServiceTest {
     void reseedNow_freeWeekHasNullAssignee() {
         stubDefaultOrganization();
         User s1 = makeStudent(1, "student1", "student1@vv.com");
-        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(List.of(s1));
+        when(userRepository.findByOrganization_IdAndRole(1L, User.Role.STUDENT)).thenReturn(List.of(s1));
 
         cleaningScheduleService.reseedNow();
 

@@ -3,6 +3,7 @@ package com.villavredestein.service;
 import com.villavredestein.dto.CleaningTaskRequestDTO;
 import com.villavredestein.dto.CleaningTaskResponseDTO;
 import com.villavredestein.model.CleaningTask;
+import com.villavredestein.model.Organization;
 import com.villavredestein.model.User;
 import com.villavredestein.repository.CleaningTaskRepository;
 import com.villavredestein.repository.UserRepository;
@@ -25,10 +26,19 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CleaningTaskServiceTest {
 
+    private static final Long ORG_ID = 1L;
+
     @Mock CleaningTaskRepository taskRepository;
     @Mock UserRepository userRepository;
     @Mock CleaningScheduleService scheduleService;
+    @Mock UserService userService;
     @InjectMocks CleaningTaskService cleaningTaskService;
+
+    private Organization makeOrganization() {
+        Organization organization = new Organization("Villa Vredestein", "villa-vredestein");
+        ReflectionTestUtils.setField(organization, "id", ORG_ID);
+        return organization;
+    }
 
     private User makeStudent(String username, String email) {
         return new User(username, email, "hash", User.Role.STUDENT);
@@ -38,83 +48,94 @@ class CleaningTaskServiceTest {
         CleaningTask task = new CleaningTask(week, name, "Beschrijving", null);
         task.setAssignedTo(assignee);
         task.setCompleted(false);
+        task.setOrganization(makeOrganization());
         ReflectionTestUtils.setField(task, "id", id);
         return task;
+    }
+
+    private void stubCurrentOrganizationId() {
+        when(userService.currentOrganizationId()).thenReturn(ORG_ID);
     }
 
 
     @Test
     void getAllTasksForRole_admin_returnsAllTasks() {
+        stubCurrentOrganizationId();
         User student = makeStudent("student1", "student1@vv.com");
         CleaningTask t1 = makeTask(1L, 1, "Keuken", student);
         CleaningTask t2 = makeTask(2L, 2, "Badkamer", null);
 
-        when(taskRepository.findAllByOrderByWeekNumberAscIdAsc()).thenReturn(List.of(t1, t2));
+        when(taskRepository.findByOrganization_IdOrderByWeekNumberAscIdAsc(ORG_ID)).thenReturn(List.of(t1, t2));
 
         List<CleaningTaskResponseDTO> result = cleaningTaskService.getAllTasksForRole("ADMIN");
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getName()).isEqualTo("Keuken");
-        verify(taskRepository).findAllByOrderByWeekNumberAscIdAsc();
-        verify(taskRepository, never()).findAccessibleForRole(any());
+        verify(taskRepository).findByOrganization_IdOrderByWeekNumberAscIdAsc(ORG_ID);
+        verify(taskRepository, never()).findAccessibleForRoleInOrganization(any(), any());
     }
 
     @Test
     void getAllTasksForRole_student_returnsAccessibleTasks() {
+        stubCurrentOrganizationId();
         User student = makeStudent("student1", "student1@vv.com");
         CleaningTask t1 = makeTask(1L, 1, "Keuken", student);
 
-        when(taskRepository.findAccessibleForRole("STUDENT")).thenReturn(List.of(t1));
+        when(taskRepository.findAccessibleForRoleInOrganization(ORG_ID, "STUDENT")).thenReturn(List.of(t1));
 
         List<CleaningTaskResponseDTO> result = cleaningTaskService.getAllTasksForRole("STUDENT");
 
         assertThat(result).hasSize(1);
-        verify(taskRepository).findAccessibleForRole("STUDENT");
-        verify(taskRepository, never()).findAllByOrderByWeekNumberAscIdAsc();
+        verify(taskRepository).findAccessibleForRoleInOrganization(ORG_ID, "STUDENT");
+        verify(taskRepository, never()).findByOrganization_IdOrderByWeekNumberAscIdAsc(any());
     }
 
     @Test
     void getAllTasksForRole_roleWithPrefix_stripsPrefix() {
-        when(taskRepository.findAccessibleForRole("STUDENT")).thenReturn(List.of());
+        stubCurrentOrganizationId();
+        when(taskRepository.findAccessibleForRoleInOrganization(ORG_ID, "STUDENT")).thenReturn(List.of());
 
         cleaningTaskService.getAllTasksForRole("ROLE_STUDENT");
 
-        verify(taskRepository).findAccessibleForRole("STUDENT");
+        verify(taskRepository).findAccessibleForRoleInOrganization(ORG_ID, "STUDENT");
     }
 
     @Test
     void getAllTasksForRole_nullRole_defaultsToStudent() {
-        when(taskRepository.findAccessibleForRole("STUDENT")).thenReturn(List.of());
+        stubCurrentOrganizationId();
+        when(taskRepository.findAccessibleForRoleInOrganization(ORG_ID, "STUDENT")).thenReturn(List.of());
 
         cleaningTaskService.getAllTasksForRole(null);
 
-        verify(taskRepository).findAccessibleForRole("STUDENT");
+        verify(taskRepository).findAccessibleForRoleInOrganization(ORG_ID, "STUDENT");
     }
 
 
     @Test
     void getTasksByWeekForRole_admin_usesAdminQuery() {
+        stubCurrentOrganizationId();
         User student = makeStudent("student1", "student1@vv.com");
         CleaningTask t = makeTask(1L, 1, "Keuken", student);
 
-        when(taskRepository.findByWeekNumberOrderByIdAsc(1)).thenReturn(List.of(t));
+        when(taskRepository.findByOrganization_IdAndWeekNumberOrderByIdAsc(ORG_ID, 1)).thenReturn(List.of(t));
 
         List<CleaningTaskResponseDTO> result = cleaningTaskService.getTasksByWeekForRole("ADMIN", 1);
 
         assertThat(result).hasSize(1);
-        verify(taskRepository).findByWeekNumberOrderByIdAsc(1);
+        verify(taskRepository).findByOrganization_IdAndWeekNumberOrderByIdAsc(ORG_ID, 1);
     }
 
     @Test
     void getTasksByWeekForRole_student_usesRoleQuery() {
+        stubCurrentOrganizationId();
         CleaningTask t = makeTask(1L, 1, "Keuken", null);
 
-        when(taskRepository.findAccessibleForRoleByWeek("STUDENT", 1)).thenReturn(List.of(t));
+        when(taskRepository.findAccessibleForRoleByWeekInOrganization(ORG_ID, "STUDENT", 1)).thenReturn(List.of(t));
 
         List<CleaningTaskResponseDTO> result = cleaningTaskService.getTasksByWeekForRole("STUDENT", 1);
 
         assertThat(result).hasSize(1);
-        verify(taskRepository).findAccessibleForRoleByWeek("STUDENT", 1);
+        verify(taskRepository).findAccessibleForRoleByWeekInOrganization(ORG_ID, "STUDENT", 1);
     }
 
     @Test
@@ -132,8 +153,9 @@ class CleaningTaskServiceTest {
 
     @Test
     void getCurrentWeekTasksForRole_callsRotationWeek() {
+        stubCurrentOrganizationId();
         when(scheduleService.rotationLength()).thenReturn(5);
-        when(taskRepository.findByWeekNumberOrderByIdAsc(anyInt())).thenReturn(List.of());
+        when(taskRepository.findByOrganization_IdAndWeekNumberOrderByIdAsc(eq(ORG_ID), anyInt())).thenReturn(List.of());
 
         cleaningTaskService.getCurrentWeekTasksForRole("ADMIN");
 
@@ -143,6 +165,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void addTask_withValidDto_savesAndReturnsDto() {
+        when(userService.currentOrganization()).thenReturn(makeOrganization());
         CleaningTaskRequestDTO dto = new CleaningTaskRequestDTO();
         dto.setWeekNumber(1);
         dto.setName("Keuken");
@@ -160,6 +183,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void addTask_withAssignedToEmail_resolvesUser() {
+        when(userService.currentOrganization()).thenReturn(makeOrganization());
         CleaningTaskRequestDTO dto = new CleaningTaskRequestDTO();
         dto.setWeekNumber(2);
         dto.setName("Badkamer");
@@ -203,6 +227,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void updateTask_existing_updatesFields() {
+        stubCurrentOrganizationId();
         User student = makeStudent("student1", "student1@vv.com");
         CleaningTask task = makeTask(1L, 1, "OudNaam", student);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
@@ -220,6 +245,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void updateTask_notExisting_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(taskRepository.findById(99L)).thenReturn(Optional.empty());
 
         CleaningTaskRequestDTO dto = new CleaningTaskRequestDTO();
@@ -232,6 +258,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void toggleTask_completedTrue_setsToFalse() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         task.setCompleted(true);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
@@ -243,6 +270,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void toggleTask_completedFalse_setsToTrue() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         task.setCompleted(false);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
@@ -254,6 +282,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void toggleTask_notExisting_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(taskRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> cleaningTaskService.toggleTask(99L));
     }
@@ -261,6 +290,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void addComment_validComment_setsComment() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
@@ -271,6 +301,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void addComment_blankComment_throwsIllegalArgumentException() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
@@ -279,6 +310,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void addComment_nullComment_throwsIllegalArgumentException() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
@@ -288,6 +320,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void addIncident_validReport_setsIncidentReport() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
@@ -298,6 +331,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void addIncident_blankReport_throwsIllegalArgumentException() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
@@ -307,6 +341,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void deleteTask_existing_callsDelete() {
+        stubCurrentOrganizationId();
         CleaningTask task = makeTask(1L, 1, "Keuken", null);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
@@ -317,6 +352,7 @@ class CleaningTaskServiceTest {
 
     @Test
     void deleteTask_notExisting_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(taskRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> cleaningTaskService.deleteTask(99L));

@@ -1,6 +1,7 @@
 package com.villavredestein.service;
 
 import com.villavredestein.dto.RoomResponseDTO;
+import com.villavredestein.model.Organization;
 import com.villavredestein.model.Room;
 import com.villavredestein.model.User;
 import com.villavredestein.repository.RoomRepository;
@@ -24,16 +25,30 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RoomServiceTest {
 
+    private static final Long ORG_ID = 1L;
+
     @Mock RoomRepository roomRepository;
     @Mock UserRepository userRepository;
+    @Mock UserService userService;
     @InjectMocks RoomService roomService;
+
+    private void stubCurrentOrganizationId() {
+        when(userService.currentOrganizationId()).thenReturn(ORG_ID);
+    }
+
+    private Organization makeOrganization() {
+        Organization organization = new Organization("Villa Vredestein", "villa-vredestein");
+        ReflectionTestUtils.setField(organization, "id", ORG_ID);
+        return organization;
+    }
 
 
     @Test
     void getAllRoomsDTO_returnsListOfDTOs() {
+        stubCurrentOrganizationId();
         Room r1 = makeRoom(1L, "Kamer 1", null);
         Room r2 = makeRoom(2L, "Kamer 2", null);
-        when(roomRepository.findAllByOrderByIdAsc()).thenReturn(List.of(r1, r2));
+        when(roomRepository.findByOrganization_IdOrderByIdAsc(ORG_ID)).thenReturn(List.of(r1, r2));
 
         List<RoomResponseDTO> result = roomService.getAllRoomsDTO();
 
@@ -44,7 +59,8 @@ class RoomServiceTest {
 
     @Test
     void getAllRoomsDTO_empty_returnsEmptyList() {
-        when(roomRepository.findAllByOrderByIdAsc()).thenReturn(List.of());
+        stubCurrentOrganizationId();
+        when(roomRepository.findByOrganization_IdOrderByIdAsc(ORG_ID)).thenReturn(List.of());
 
         List<RoomResponseDTO> result = roomService.getAllRoomsDTO();
 
@@ -54,6 +70,7 @@ class RoomServiceTest {
 
     @Test
     void getRoomByIdDTO_found_returnsDto() {
+        stubCurrentOrganizationId();
         Room room = makeRoom(1L, "Kamer 1", null);
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
 
@@ -66,6 +83,7 @@ class RoomServiceTest {
 
     @Test
     void getRoomByIdDTO_notFound_returnsEmptyOptional() {
+        stubCurrentOrganizationId();
         when(roomRepository.findById(99L)).thenReturn(Optional.empty());
 
         Optional<RoomResponseDTO> result = roomService.getRoomByIdDTO(99L);
@@ -88,6 +106,7 @@ class RoomServiceTest {
 
     @Test
     void assignOccupantDTO_success_assignsOccupantAndReturnsDto() {
+        stubCurrentOrganizationId();
         User user = makeUser(1L, "student", "s@test.com");
         Room room = makeRoom(1L, "Kamer 1", null);
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
@@ -102,6 +121,7 @@ class RoomServiceTest {
 
     @Test
     void assignOccupantDTO_roomNotFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(roomRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> roomService.assignOccupantDTO(99L, 1L));
@@ -110,6 +130,7 @@ class RoomServiceTest {
 
     @Test
     void assignOccupantDTO_userNotFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         Room room = makeRoom(1L, "Kamer 1", null);
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
@@ -119,6 +140,7 @@ class RoomServiceTest {
 
     @Test
     void assignOccupantDTO_roomOccupiedByDifferentUser_throwsIllegalStateException() {
+        stubCurrentOrganizationId();
         User existingOccupant = makeUser(2L, "other", "other@test.com");
         User newUser = makeUser(1L, "student", "s@test.com");
         Room room = makeRoom(1L, "Kamer 1", existingOccupant);
@@ -130,6 +152,7 @@ class RoomServiceTest {
 
     @Test
     void assignOccupantDTO_userAlreadyInDifferentRoom_throwsIllegalStateException() {
+        stubCurrentOrganizationId();
         User user = makeUser(1L, "student", "s@test.com");
         Room targetRoom = makeRoom(1L, "Kamer 1", null);
         Room otherRoom = makeRoom(2L, "Kamer 2", user);
@@ -142,6 +165,7 @@ class RoomServiceTest {
 
     @Test
     void assignOccupantDTO_reassignSameUserToSameRoom_succeeds() {
+        stubCurrentOrganizationId();
         User user = makeUser(1L, "student", "s@test.com");
         Room room = makeRoom(1L, "Kamer 1", user);
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
@@ -157,6 +181,7 @@ class RoomServiceTest {
 
     @Test
     void removeOccupantDTO_success_removesOccupantAndReturnsDto() {
+        stubCurrentOrganizationId();
         User user = makeUser(1L, "student", "s@test.com");
         Room room = makeRoom(1L, "Kamer 1", user);
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
@@ -169,6 +194,7 @@ class RoomServiceTest {
 
     @Test
     void removeOccupantDTO_roomNotFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(roomRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> roomService.removeOccupantDTO(99L));
@@ -177,6 +203,7 @@ class RoomServiceTest {
 
     @Test
     void deleteRoom_success_deletesRoom() {
+        stubCurrentOrganizationId();
         Room room = makeRoom(1L, "Kamer 1", null);
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
 
@@ -186,6 +213,7 @@ class RoomServiceTest {
 
     @Test
     void deleteRoom_notFound_throwsEntityNotFoundException() {
+        stubCurrentOrganizationId();
         when(roomRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> roomService.deleteRoom(99L));
@@ -207,12 +235,14 @@ class RoomServiceTest {
 
     private User makeUser(long id, String username, String email) {
         User user = new User(username, email, "hash", User.Role.STUDENT);
+        user.setOrganization(makeOrganization());
         ReflectionTestUtils.setField(user, "id", id);
         return user;
     }
 
     private Room makeRoom(long id, String name, User occupant) {
         Room room = new Room(name);
+        room.setOrganization(makeOrganization());
         ReflectionTestUtils.setField(room, "id", id);
         if (occupant != null) {
             room.assignOccupant(occupant);

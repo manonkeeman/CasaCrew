@@ -6,6 +6,7 @@ import com.villavredestein.model.User;
 import com.villavredestein.repository.CleaningTaskRepository;
 import com.villavredestein.repository.TaskPhotoRepository;
 import com.villavredestein.repository.UserRepository;
+import com.villavredestein.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,23 +34,25 @@ public class TaskPhotosController {
     private final TaskPhotoRepository taskPhotoRepository;
     private final CleaningTaskRepository cleaningTaskRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final Path uploadDir;
 
     public TaskPhotosController(TaskPhotoRepository taskPhotoRepository,
                                 CleaningTaskRepository cleaningTaskRepository,
                                 UserRepository userRepository,
+                                UserService userService,
                                 @Value("${app.upload-dir:uploads}") String uploadDir) {
         this.taskPhotoRepository = taskPhotoRepository;
         this.cleaningTaskRepository = cleaningTaskRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
         this.uploadDir = Paths.get(uploadDir, "task-photos").toAbsolutePath().normalize();
     }
 
     @GetMapping("/task/{taskId}")
     @PreAuthorize("hasAnyRole('ADMIN','CLEANER')")
     public ResponseEntity<List<TaskPhoto>> getByTask(@PathVariable Long taskId) {
-        CleaningTask task = cleaningTaskRepository.findById(taskId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Taak niet gevonden."));
+        CleaningTask task = resolveTaskInCurrentOrganization(taskId);
         return ResponseEntity.ok(taskPhotoRepository.findByTaskOrderByUploadedAtDesc(task));
     }
 
@@ -64,8 +67,7 @@ public class TaskPhotosController {
         if (contentType == null || !ALLOWED_TYPES.contains(contentType))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Alleen JPEG, PNG en WebP zijn toegestaan.");
 
-        CleaningTask task = cleaningTaskRepository.findById(taskId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Taak niet gevonden."));
+        CleaningTask task = resolveTaskInCurrentOrganization(taskId);
         User uploader = resolveUser(auth.getName());
 
         Files.createDirectories(uploadDir);
@@ -76,6 +78,7 @@ public class TaskPhotosController {
         TaskPhoto taskPhoto = new TaskPhoto();
         taskPhoto.setTask(task);
         taskPhoto.setUploadedBy(uploader);
+        taskPhoto.setOrganization(userService.currentOrganization());
         taskPhoto.setPhotoPath("task-photos/" + filename);
 
         return ResponseEntity.ok(taskPhotoRepository.save(taskPhoto));
@@ -84,12 +87,21 @@ public class TaskPhotosController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) throws IOException {
+        Long organizationId = userService.currentOrganizationId();
         TaskPhoto photo = taskPhotoRepository.findById(id)
+                .filter(p -> p.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Foto niet gevonden."));
         Path file = Paths.get(uploadDir.getParent().toString(), photo.getPhotoPath()).normalize();
         Files.deleteIfExists(file);
         taskPhotoRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private CleaningTask resolveTaskInCurrentOrganization(Long taskId) {
+        Long organizationId = userService.currentOrganizationId();
+        return cleaningTaskRepository.findById(taskId)
+                .filter(t -> t.getOrganization().getId().equals(organizationId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Taak niet gevonden."));
     }
 
     private User resolveUser(String email) {

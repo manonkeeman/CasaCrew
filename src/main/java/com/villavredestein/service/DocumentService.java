@@ -41,14 +41,17 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
     private final MailService mailService;
+    private final UserService userService;
 
     @Value("${app.upload-dir}")
     private String uploadDirPath;
 
-    public DocumentService(DocumentRepository documentRepository, UserRepository userRepository, MailService mailService) {
+    public DocumentService(DocumentRepository documentRepository, UserRepository userRepository,
+                           MailService mailService, UserService userService) {
         this.documentRepository = documentRepository;
         this.userRepository = userRepository;
         this.mailService = mailService;
+        this.userService = userService;
     }
 
     // UPLOAD
@@ -97,6 +100,7 @@ public class DocumentService {
                 normalizedRoleAccess,
                 uploader
         );
+        document.setOrganization(uploader.getOrganization());
 
         Document saved = documentRepository.save(document);
 
@@ -122,13 +126,11 @@ public class DocumentService {
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<DocumentResponseDTO> listAccessibleDocuments(String role) {
         String normalizedRole = normalizeRoleAccess(role);
+        Long organizationId = userService.currentOrganizationId();
 
-        List<Document> docs;
-        if ("ADMIN".equalsIgnoreCase(normalizedRole)) {
-            docs = documentRepository.findAllByOrderByIdDesc();
-        } else {
-            docs = documentRepository.findAccessibleForRole(normalizedRole);
-        }
+        List<Document> docs = "ADMIN".equalsIgnoreCase(normalizedRole)
+                ? documentRepository.findByOrganization_IdOrderByIdDesc(organizationId)
+                : documentRepository.findAccessibleForRoleInOrganization(organizationId, normalizedRole);
 
         return docs.stream()
                 .map(this::toResponseDTO)
@@ -140,12 +142,7 @@ public class DocumentService {
     public record DownloadResult(FileSystemResource resource, String title, Path storagePath) {}
 
     public DownloadResult download(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Document id is ongeldig");
-        }
-
-        Document doc = documentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Document niet gevonden: " + id));
+        Document doc = findInCurrentOrganizationOrThrow(id);
 
         Path path = Paths.get(doc.getStoragePath()).normalize();
         if (!Files.exists(path)) {
@@ -158,12 +155,7 @@ public class DocumentService {
     // DELETE
 
     public void delete(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Document id is ongeldig");
-        }
-
-        Document doc = documentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Document niet gevonden: " + id));
+        Document doc = findInCurrentOrganizationOrThrow(id);
 
         try {
             Files.deleteIfExists(Paths.get(doc.getStoragePath()));
@@ -175,6 +167,16 @@ public class DocumentService {
     }
 
     // HELPERS
+
+    private Document findInCurrentOrganizationOrThrow(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Document id is ongeldig");
+        }
+        Long organizationId = userService.currentOrganizationId();
+        return documentRepository.findById(id)
+                .filter(d -> d.getOrganization().getId().equals(organizationId))
+                .orElseThrow(() -> new EntityNotFoundException("Document niet gevonden: " + id));
+    }
 
     private DocumentResponseDTO toResponseDTO(Document doc) {
         String uploadedBy = doc.getUploadedBy() != null ? doc.getUploadedBy().getUsername() : null;
@@ -200,7 +202,8 @@ public class DocumentService {
             return;
         }
 
-        List<User> students = userRepository.findByRole(User.Role.STUDENT);
+        List<User> students = userRepository.findByOrganization_IdAndRole(
+                document.getOrganization().getId(), User.Role.STUDENT);
         for (User student : students) {
             if (student.getEmail() == null || student.getEmail().isBlank()) continue;
             try {

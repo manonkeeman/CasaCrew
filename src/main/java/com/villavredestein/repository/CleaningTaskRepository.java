@@ -21,6 +21,12 @@ public interface CleaningTaskRepository extends JpaRepository<CleaningTask, Long
     @Query("SELECT t FROM CleaningTask t LEFT JOIN FETCH t.assignedTo ORDER BY t.weekNumber ASC, t.id ASC")
     List<CleaningTask> findAllByOrderByWeekNumberAscIdAsc();
 
+    @Query("SELECT t FROM CleaningTask t LEFT JOIN FETCH t.assignedTo WHERE t.organization.id = :organizationId ORDER BY t.weekNumber ASC, t.id ASC")
+    List<CleaningTask> findByOrganization_IdOrderByWeekNumberAscIdAsc(@Param("organizationId") Long organizationId);
+
+    @Query("SELECT t FROM CleaningTask t LEFT JOIN FETCH t.assignedTo WHERE t.organization.id = :organizationId AND t.weekNumber = :weekNumber ORDER BY t.id ASC")
+    List<CleaningTask> findByOrganization_IdAndWeekNumberOrderByIdAsc(@Param("organizationId") Long organizationId, @Param("weekNumber") int weekNumber);
+
     @EntityGraph(attributePaths = "assignedTo")
     List<CleaningTask> findAllByOrderByIdAsc();
 

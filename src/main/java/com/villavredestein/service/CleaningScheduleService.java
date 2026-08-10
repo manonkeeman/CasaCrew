@@ -60,7 +60,7 @@ public class CleaningScheduleService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Standaardorganisatie '" + DEFAULT_ORGANIZATION_SLUG + "' niet gevonden -- draai de Flyway-migraties eerst"));
 
-        List<User> students = userRepository.findByRole(User.Role.STUDENT)
+        List<User> students = userRepository.findByOrganization_IdAndRole(organization.getId(), User.Role.STUDENT)
                 .stream()
                 .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
                 .toList();

@@ -19,15 +19,17 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public PaymentService(PaymentRepository paymentRepository, UserRepository userRepository) {
+    public PaymentService(PaymentRepository paymentRepository, UserRepository userRepository, UserService userService) {
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Transactional(readOnly = true)
     public List<PaymentResponseDTO> getAllPayments() {
-        return paymentRepository.findAllByOrderByIdDesc()
+        return paymentRepository.findByOrganization_IdOrderByIdDesc(userService.currentOrganizationId())
                 .stream()
                 .map(this::toResponseDTO)
                 .toList();
@@ -37,7 +39,8 @@ public class PaymentService {
     public List<PaymentResponseDTO> getPaymentsForStudent(String studentEmail) {
         String email = normalizeEmail(studentEmail);
 
-        return paymentRepository.findByStudent_EmailIgnoreCaseOrderByIdDesc(email)
+        return paymentRepository.findByOrganization_IdAndStudent_EmailIgnoreCaseOrderByIdDesc(
+                        userService.currentOrganizationId(), email)
                 .stream()
                 .map(this::toResponseDTO)
                 .toList();
@@ -65,9 +68,7 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public PaymentResponseDTO getPaymentById(Long id) {
-        Payment payment = paymentRepository.findById(requireId(id))
-                .orElseThrow(() -> new EntityNotFoundException("Payment not found: " + id));
-        return toResponseDTO(payment);
+        return toResponseDTO(findInCurrentOrganizationOrThrow(id));
     }
 
     public PaymentResponseDTO createPayment(PaymentRequestDTO dto) {
@@ -76,7 +77,9 @@ public class PaymentService {
         }
 
         String email = normalizeEmail(dto.getStudentEmail());
+        Long organizationId = userService.currentOrganizationId();
         User student = userRepository.findByEmailIgnoreCase(email)
+                .filter(u -> u.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() -> new EntityNotFoundException("Student not found: " + email));
 
         Payment payment = new Payment(
@@ -86,6 +89,7 @@ public class PaymentService {
                 dto.getDescription(),
                 student
         );
+        payment.setOrganization(userService.currentOrganization());
 
         payment.setStatus(dto.getStatus());
 
@@ -101,8 +105,7 @@ public class PaymentService {
     }
 
     public PaymentResponseDTO updateStatus(Long paymentId, String newStatus) {
-        Payment payment = paymentRepository.findById(requireId(paymentId))
-                .orElseThrow(() -> new EntityNotFoundException("Payment not found: " + paymentId));
+        Payment payment = findInCurrentOrganizationOrThrow(paymentId);
 
         payment.setStatus(newStatus);
 
@@ -119,9 +122,15 @@ public class PaymentService {
     }
 
     public void deletePayment(Long id) {
-        Payment payment = paymentRepository.findById(requireId(id))
-                .orElseThrow(() -> new EntityNotFoundException("Payment not found: " + id));
+        Payment payment = findInCurrentOrganizationOrThrow(id);
         paymentRepository.delete(payment);
+    }
+
+    private Payment findInCurrentOrganizationOrThrow(Long id) {
+        Long organizationId = userService.currentOrganizationId();
+        return paymentRepository.findById(requireId(id))
+                .filter(p -> p.getOrganization().getId().equals(organizationId))
+                .orElseThrow(() -> new EntityNotFoundException("Payment not found: " + id));
     }
 
     private Long requireId(Long id) {

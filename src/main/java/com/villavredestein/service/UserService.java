@@ -3,11 +3,13 @@ package com.villavredestein.service;
 import com.villavredestein.dto.UserRequestDTO;
 import com.villavredestein.dto.UserResponseDTO;
 import com.villavredestein.model.Invoice;
+import com.villavredestein.model.Organization;
 import com.villavredestein.model.Room;
 import com.villavredestein.model.User;
 import com.villavredestein.repository.CleaningTaskRepository;
 import com.villavredestein.repository.DocumentRepository;
 import com.villavredestein.repository.InvoiceRepository;
+import com.villavredestein.repository.OrganizationRepository;
 import com.villavredestein.repository.PasswordResetTokenRepository;
 import com.villavredestein.repository.PaymentRepository;
 import com.villavredestein.repository.RoomRepository;
@@ -54,6 +56,8 @@ public class UserService implements UserDetailsService {
     private static final Set<String> ALLOWED_IMAGE_TYPES =
             Set.of("image/jpeg", "image/png", "image/webp");
 
+    private static final String DEFAULT_ORGANIZATION_SLUG = "villa-vredestein";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoomRepository roomRepository;
@@ -63,6 +67,7 @@ public class UserService implements UserDetailsService {
     private final PaymentRepository paymentRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final AuthSessionService authSessionService;
+    private final OrganizationRepository organizationRepository;
     private final CleaningScheduleService cleaningScheduleService;
     private final Path uploadDir;
 
@@ -76,6 +81,7 @@ public class UserService implements UserDetailsService {
             PaymentRepository paymentRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,
             AuthSessionService authSessionService,
+            OrganizationRepository organizationRepository,
             @Lazy CleaningScheduleService cleaningScheduleService,
             @Value("${app.upload-dir:uploads}") String uploadDir
     ) {
@@ -86,6 +92,7 @@ public class UserService implements UserDetailsService {
         this.invoiceRepository = invoiceRepository;
         this.documentRepository = documentRepository;
         this.paymentRepository = paymentRepository;
+        this.organizationRepository = organizationRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.authSessionService = authSessionService;
         this.cleaningScheduleService = cleaningScheduleService;
@@ -113,21 +120,27 @@ public class UserService implements UserDetailsService {
     }
 
     public UserResponseDTO createStudent(String username, String email, String rawPassword) {
-        return createUser(username, email, rawPassword, User.Role.STUDENT);
+        return createUser(username, email, rawPassword, User.Role.STUDENT, currentUser().getOrganization());
     }
 
     public UserResponseDTO createUserWithRole(String username, String email, String rawPassword, String role) {
-        return createUser(username, email, rawPassword, parseRole(role));
+        return createUser(username, email, rawPassword, parseRole(role), currentUser().getOrganization());
     }
 
     public UserResponseDTO createAdmin(String username, String email, String rawPassword) {
-        return createUser(username, email, rawPassword, User.Role.ADMIN);
+        return createUser(username, email, rawPassword, User.Role.ADMIN, currentUser().getOrganization());
     }
 
     public UserResponseDTO createCleaner(String username, String email, String rawPassword) {
-        return createUser(username, email, rawPassword, User.Role.CLEANER);
+        return createUser(username, email, rawPassword, User.Role.CLEANER, currentUser().getOrganization());
     }
 
+    /**
+     * Alleen voor de boot-time CommandLineRunner (VredesteinApplication):
+     * er is op dat moment geen ingelogde gebruiker om de organisatie van af
+     * te leiden. Zolang er geen zelfregistratie is (fase 4) bestaat er
+     * precies één organisatie ("villa-vredestein", zie V4-backfill).
+     */
     public UserResponseDTO seedUserIfMissing(String username, String email, String rawPassword, User.Role role) {
         String normalizedEmail = normalizeEmail(email);
 
@@ -135,11 +148,14 @@ public class UserService implements UserDetailsService {
                 .map(this::toDTO)
                 .orElseGet(() -> {
                     log.info("Seeding user {} with role {}", maskEmail(normalizedEmail), role);
-                    return createUser(username, normalizedEmail, rawPassword, role);
+                    Organization organization = organizationRepository.findBySlugIgnoreCase(DEFAULT_ORGANIZATION_SLUG)
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    "Standaardorganisatie '" + DEFAULT_ORGANIZATION_SLUG + "' niet gevonden -- draai de Flyway-migraties eerst"));
+                    return createUser(username, normalizedEmail, rawPassword, role, organization);
                 });
     }
 
-    private UserResponseDTO createUser(String username, String email, String rawPassword, User.Role role) {
+    private UserResponseDTO createUser(String username, String email, String rawPassword, User.Role role, Organization organization) {
         validateNewUserInput(username, rawPassword, role);
 
         String normalizedEmail = normalizeEmail(email);
@@ -153,13 +169,14 @@ public class UserService implements UserDetailsService {
                 passwordEncoder.encode(rawPassword),
                 role
         );
+        user.setOrganization(organization);
 
         return toDTO(userRepository.save(user));
     }
 
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAllByOrderByIdAsc()
+        return userRepository.findByOrganization_IdOrderByIdAsc(currentOrganizationId())
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -167,7 +184,10 @@ public class UserService implements UserDetailsService {
 
     @Transactional(readOnly = true)
     public Optional<UserResponseDTO> getUserById(Long id) {
-        return userRepository.findById(id).map(this::toDTO);
+        Long organizationId = currentOrganizationId();
+        return userRepository.findById(id)
+                .filter(u -> u.getOrganization().getId().equals(organizationId))
+                .map(this::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -188,6 +208,18 @@ public class UserService implements UserDetailsService {
     @Transactional(readOnly = true)
     public Long currentOrganizationId() {
         return currentUser().getOrganization().getId();
+    }
+
+    /**
+     * Geeft de Organization-referentie van de huidige gebruiker terug --
+     * bruikbaar om direct op een nieuwe entity te zetten (setOrganization)
+     * zonder een aparte OrganizationRepository-lookup. Roep hierop nooit
+     * lazy velden aan buiten deze transactie (bv. getName()); .getId() is
+     * altijd veilig, ook op een niet-geïnitialiseerde proxy.
+     */
+    @Transactional(readOnly = true)
+    public Organization currentOrganization() {
+        return currentUser().getOrganization();
     }
 
     public UserResponseDTO changeRole(Long id, String newRole) {
@@ -380,7 +412,9 @@ public class UserService implements UserDetailsService {
     }
 
     private User findUserByIdOrThrow(Long id) {
+        Long organizationId = currentOrganizationId();
         return userRepository.findById(id)
+                .filter(u -> u.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
     }
 

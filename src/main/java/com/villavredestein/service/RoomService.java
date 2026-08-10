@@ -18,16 +18,18 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public RoomService(RoomRepository roomRepository, UserRepository userRepository) {
+    public RoomService(RoomRepository roomRepository, UserRepository userRepository, UserService userService) {
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
 
     @Transactional(readOnly = true)
     public List<RoomResponseDTO> getAllRoomsDTO() {
-        return roomRepository.findAllByOrderByIdAsc()
+        return roomRepository.findByOrganization_IdOrderByIdAsc(userService.currentOrganizationId())
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -38,12 +40,12 @@ public class RoomService {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Room id is required");
         }
-        return roomRepository.findById(id).map(this::toDTO);
+        return findInCurrentOrganization(id).map(this::toDTO);
     }
 
 
     public RoomResponseDTO assignOccupantDTO(Long roomId, Long userId) {
-        Room room = roomRepository.findById(requireId(roomId, "roomId"))
+        Room room = findInCurrentOrganization(requireId(roomId, "roomId"))
                 .orElseThrow(() -> new EntityNotFoundException("Room not found: " + roomId));
 
         User user = userRepository.findById(requireId(userId, "userId"))
@@ -64,7 +66,7 @@ public class RoomService {
     }
 
     public RoomResponseDTO removeOccupantDTO(Long roomId) {
-        Room room = roomRepository.findById(requireId(roomId, "roomId"))
+        Room room = findInCurrentOrganization(requireId(roomId, "roomId"))
                 .orElseThrow(() -> new EntityNotFoundException("Room not found: " + roomId));
 
         room.removeOccupant();
@@ -77,16 +79,25 @@ public class RoomService {
             throw new IllegalArgumentException("Naam is verplicht");
         }
         String trimmed = name.trim();
-        if (roomRepository.findByNameIgnoreCase(trimmed).isPresent()) {
+        Long organizationId = userService.currentOrganizationId();
+        if (roomRepository.findByOrganization_IdAndNameIgnoreCase(organizationId, trimmed).isPresent()) {
             throw new IllegalStateException("Kamer met naam '" + trimmed + "' bestaat al");
         }
-        return toDTO(roomRepository.save(new Room(trimmed)));
+        Room room = new Room(trimmed);
+        room.setOrganization(userService.currentOrganization());
+        return toDTO(roomRepository.save(room));
     }
 
     public void deleteRoom(Long id) {
-        Room room = roomRepository.findById(requireId(id, "id"))
+        Room room = findInCurrentOrganization(requireId(id, "id"))
                 .orElseThrow(() -> new EntityNotFoundException("Room not found: " + id));
         roomRepository.delete(room);
+    }
+
+    private Optional<Room> findInCurrentOrganization(Long id) {
+        Long organizationId = userService.currentOrganizationId();
+        return roomRepository.findById(id)
+                .filter(r -> r.getOrganization().getId().equals(organizationId));
     }
 
 

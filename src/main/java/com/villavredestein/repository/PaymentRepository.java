@@ -22,4 +22,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByStudent(User student);
 
     List<Payment> findByOrganization_IdOrderByIdDesc(Long organizationId);
+
+    List<Payment> findByOrganization_IdAndStudent_EmailIgnoreCaseOrderByIdDesc(Long organizationId, String email);
 }

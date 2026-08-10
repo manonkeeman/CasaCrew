@@ -3,6 +3,7 @@ package com.villavredestein.controller;
 import com.villavredestein.dto.AnnouncementResponseDTO;
 import com.villavredestein.model.Announcement;
 import com.villavredestein.repository.AnnouncementRepository;
+import com.villavredestein.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -24,15 +25,18 @@ import java.util.Map;
 public class AnnouncementController {
 
     private final AnnouncementRepository announcementRepository;
+    private final UserService userService;
 
-    public AnnouncementController(AnnouncementRepository announcementRepository) {
+    public AnnouncementController(AnnouncementRepository announcementRepository, UserService userService) {
         this.announcementRepository = announcementRepository;
+        this.userService = userService;
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     public ResponseEntity<List<AnnouncementResponseDTO>> getAll() {
-        List<AnnouncementResponseDTO> result = announcementRepository.findAllByOrderByCreatedAtDesc()
+        List<AnnouncementResponseDTO> result = announcementRepository
+                .findByOrganization_IdOrderByCreatedAtDesc(userService.currentOrganizationId())
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -65,6 +69,7 @@ public class AnnouncementController {
         ann.setBody(req.body() != null ? req.body().trim() : "");
         ann.setAuthor(req.author() != null ? req.author().trim() : "Beheerder");
         ann.setCreatedAt(LocalDateTime.now());
+        ann.setOrganization(userService.currentOrganization());
         try {
             ann.setType(Announcement.AnnouncementType.valueOf(
                     req.type() != null ? req.type().trim().toLowerCase() : "mededeling"));
@@ -78,11 +83,18 @@ public class AnnouncementController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> delete(@PathVariable Long id) {
-        if (!announcementRepository.existsById(id)) {
+        Announcement ann = findInCurrentOrganizationOrThrow(id);
+        announcementRepository.delete(ann);
+        return ResponseEntity.ok(Map.of("message", "Verwijderd"));
+    }
+
+    private Announcement findInCurrentOrganizationOrThrow(Long id) {
+        Announcement ann = announcementRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Aankondiging niet gevonden: id=" + id));
+        if (!ann.getOrganization().getId().equals(userService.currentOrganizationId())) {
             throw new EntityNotFoundException("Aankondiging niet gevonden: id=" + id);
         }
-        announcementRepository.deleteById(id);
-        return ResponseEntity.ok(Map.of("message", "Verwijderd"));
+        return ann;
     }
 
     private AnnouncementResponseDTO toDTO(Announcement a) {

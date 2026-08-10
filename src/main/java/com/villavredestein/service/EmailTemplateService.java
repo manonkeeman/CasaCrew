@@ -30,10 +30,13 @@ public class EmailTemplateService {
 
     private final EmailTemplateRepository repo;
     private final OrganizationRepository organizationRepository;
+    private final UserService userService;
 
-    public EmailTemplateService(EmailTemplateRepository repo, OrganizationRepository organizationRepository) {
+    public EmailTemplateService(EmailTemplateRepository repo, OrganizationRepository organizationRepository,
+                                UserService userService) {
         this.repo = repo;
         this.organizationRepository = organizationRepository;
+        this.userService = userService;
     }
 
 
@@ -103,17 +106,29 @@ public class EmailTemplateService {
 
 
     public List<EmailTemplate> getAll() {
-        return repo.findAll();
+        return repo.findByOrganization_Id(userService.currentOrganizationId());
     }
 
+    /**
+     * Alleen voor de achtergrond-jobs (MonthlyRentInvoiceJob,
+     * PaymentReminderJob), die vandaag geen ingelogde gebruiker hebben om de
+     * organisatie van af te leiden -- draait daarom nog org-loos. Zolang er
+     * maar één organisatie bestaat is dat correct; zodra fase 4 een tweede
+     * organisatie toelaat, moeten deze jobs zelf per organisatie itereren en
+     * moet dit org-loze pad verdwijnen.
+     */
     public EmailTemplate getByType(TemplateType type) {
         return repo.findByType(type)
                 .orElseThrow(() -> new IllegalStateException("Email template niet gevonden voor type: " + type));
     }
 
+    public EmailTemplate getByTypeInCurrentOrganization(TemplateType type) {
+        return repo.findByOrganization_IdAndType(userService.currentOrganizationId(), type)
+                .orElseThrow(() -> new IllegalStateException("Email template niet gevonden voor type: " + type));
+    }
 
     public EmailTemplate update(TemplateType type, String subject, String body) {
-        EmailTemplate template = getByType(type);
+        EmailTemplate template = getByTypeInCurrentOrganization(type);
         template.setSubject(subject);
         template.setBody(body);
         log.info("Email template updated for type={}", type);

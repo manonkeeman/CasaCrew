@@ -8,6 +8,7 @@ import com.villavredestein.repository.UserRepository;
 import com.villavredestein.service.EmailTemplateService;
 import com.villavredestein.service.InvoiceService;
 import com.villavredestein.service.MailService;
+import com.villavredestein.service.UserService;
 import com.villavredestein.service.WhatsAppService;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -41,19 +42,22 @@ public class AdminEmailController {
     private final MailService mailService;
     private final EmailTemplateService emailTemplateService;
     private final WhatsAppService whatsAppService;
+    private final UserService userService;
 
     public AdminEmailController(UserRepository userRepository,
                                 InvoiceRepository invoiceRepository,
                                 InvoiceService invoiceService,
                                 MailService mailService,
                                 EmailTemplateService emailTemplateService,
-                                WhatsAppService whatsAppService) {
+                                WhatsAppService whatsAppService,
+                                UserService userService) {
         this.userRepository      = userRepository;
         this.invoiceRepository   = invoiceRepository;
         this.invoiceService      = invoiceService;
         this.mailService         = mailService;
         this.emailTemplateService = emailTemplateService;
         this.whatsAppService     = whatsAppService;
+        this.userService         = userService;
     }
 
     // POST /api/admin/email/send
@@ -63,7 +67,9 @@ public class AdminEmailController {
     @PostMapping(value = "/send", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> sendReminder(@RequestBody SendReminderRequest request) {
 
+        Long organizationId = userService.currentOrganizationId();
         User student = userRepository.findById(request.userId())
+                .filter(u -> u.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() -> new EntityNotFoundException("Student niet gevonden: id=" + request.userId()));
 
         LocalDate today = LocalDate.now();
@@ -139,7 +145,7 @@ public class AdminEmailController {
 
     private EmailTemplate loadTemplate(EmailTemplate.TemplateType type) {
         try {
-            return emailTemplateService.getByType(type);
+            return emailTemplateService.getByTypeInCurrentOrganization(type);
         } catch (Exception e) {
             log.error("Could not load template {}: {}", type, e.getMessage());
             return null;
