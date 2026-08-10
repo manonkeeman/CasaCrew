@@ -31,6 +31,10 @@ public class Shift {
     @Column(length = 500)
     private String notes;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     public Long getId() { return id; }
     public User getCleaner() { return cleaner; }
     public void setCleaner(User cleaner) { this.cleaner = cleaner; }
@@ -42,4 +46,6 @@ public class Shift {
     public void setCheckOutAt(Instant checkOutAt) { this.checkOutAt = checkOutAt; }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    public Organization getOrganization() { return organization; }
+    public void setOrganization(Organization organization) { this.organization = organization; }
 }

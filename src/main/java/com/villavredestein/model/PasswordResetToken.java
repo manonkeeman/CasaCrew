@@ -25,6 +25,10 @@ public class PasswordResetToken {
 
     private Instant usedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     protected PasswordResetToken() {}
 
     public PasswordResetToken(String token, User user, Instant expiresAt) {
@@ -55,4 +59,6 @@ public class PasswordResetToken {
     public void setUser(User user) { this.user = user; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
     public void setUsedAt(Instant usedAt) { this.usedAt = usedAt; }
+    public Organization getOrganization() { return organization; }
+    public void setOrganization(Organization organization) { this.organization = organization; }
 }

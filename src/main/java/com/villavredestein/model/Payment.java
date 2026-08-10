@@ -57,6 +57,10 @@ public class Payment {
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     protected Payment() {
     }
 
@@ -178,6 +182,14 @@ public class Payment {
 
     public void setStudent(User student) {
         this.student = student;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
     public void markPaidNow() {

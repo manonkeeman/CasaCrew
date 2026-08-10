@@ -27,6 +27,10 @@ public class Room {
     @JoinColumn(name = "occupant_id", unique = true)
     private User occupant;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     protected Room() {
     }
 
@@ -91,6 +95,14 @@ public class Room {
 
     public boolean isOccupied() {
         return occupant != null;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
     @Override

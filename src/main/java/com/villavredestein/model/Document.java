@@ -46,6 +46,10 @@ public class Document {
     @JsonIgnoreProperties({"password", "hibernateLazyInitializer", "handler"})
     private User uploadedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     protected Document() {
     }
 
@@ -144,5 +148,13 @@ public class Document {
 
     public void setUploadedBy(User uploadedBy) {
         this.uploadedBy = uploadedBy;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

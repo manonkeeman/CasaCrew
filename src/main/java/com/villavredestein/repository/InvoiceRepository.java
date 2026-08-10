@@ -32,4 +32,14 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByInvoiceMonthAndInvoiceYearOrderByStudentUsernameAsc(int invoiceMonth, int invoiceYear);
 
     List<Invoice> findByStudentAndInvoiceMonthAndInvoiceYear(User student, int invoiceMonth, int invoiceYear);
+
+    List<Invoice> findByOrganization_IdOrderByIdDesc(Long organizationId);
+
+    List<Invoice> findByOrganization_IdAndStatusOrderByIdDesc(Long organizationId, Invoice.InvoiceStatus status);
+
+    List<Invoice> findByOrganization_IdAndStatusAndDueDateBetweenOrderByDueDateAsc(
+            Long organizationId, Invoice.InvoiceStatus status, LocalDate start, LocalDate end);
+
+    boolean existsByOrganization_IdAndStudentAndInvoiceMonthAndInvoiceYear(
+            Long organizationId, User student, int invoiceMonth, int invoiceYear);
 }

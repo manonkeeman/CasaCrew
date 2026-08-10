@@ -10,4 +10,6 @@ import java.util.List;
 public interface SupplyReportRepository extends JpaRepository<SupplyReport, Long> {
     List<SupplyReport> findByReportedByOrderByReportedAtDesc(User reportedBy);
     List<SupplyReport> findAllByOrderByReportedAtDesc();
+
+    List<SupplyReport> findByOrganization_IdOrderByReportedAtDesc(Long organizationId);
 }

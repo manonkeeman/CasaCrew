@@ -1,0 +1,27 @@
+ALTER TABLE public.announcements ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.cleaning_tasks ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.documents ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.email_templates ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.huisregels ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.invoices ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.password_reset_tokens ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.payments ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.rooms ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.shifts ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.supply_reports ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.task_photos ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE public.users ALTER COLUMN organization_id SET NOT NULL;
+
+ALTER TABLE ONLY public.announcements ADD CONSTRAINT fk_announcements_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.cleaning_tasks ADD CONSTRAINT fk_cleaning_tasks_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.documents ADD CONSTRAINT fk_documents_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.email_templates ADD CONSTRAINT fk_email_templates_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.huisregels ADD CONSTRAINT fk_huisregels_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.invoices ADD CONSTRAINT fk_invoices_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.password_reset_tokens ADD CONSTRAINT fk_password_reset_tokens_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.payments ADD CONSTRAINT fk_payments_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.rooms ADD CONSTRAINT fk_rooms_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.shifts ADD CONSTRAINT fk_shifts_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.supply_reports ADD CONSTRAINT fk_supply_reports_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.task_photos ADD CONSTRAINT fk_task_photos_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+ALTER TABLE ONLY public.users ADD CONSTRAINT fk_users_organization FOREIGN KEY (organization_id) REFERENCES public.organizations(id);

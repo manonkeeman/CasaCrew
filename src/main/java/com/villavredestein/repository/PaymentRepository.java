@@ -20,4 +20,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByStatusOrderByIdDesc(PaymentStatus status);
 
     List<Payment> findByStudent(User student);
+
+    List<Payment> findByOrganization_IdOrderByIdDesc(Long organizationId);
 }

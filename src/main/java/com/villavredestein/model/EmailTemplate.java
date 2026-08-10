@@ -38,6 +38,10 @@ public class EmailTemplate {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     protected EmailTemplate() {}
 
     public EmailTemplate(TemplateType type, String subject, String body) {
@@ -58,6 +62,8 @@ public class EmailTemplate {
 
     public void setSubject(String subject) { this.subject = subject; }
     public void setBody(String body) { this.body = body; }
+    public Organization getOrganization() { return organization; }
+    public void setOrganization(Organization organization) { this.organization = organization; }
 
     public String renderBody(String naam, String bedrag, String maand, String betaalLink, String vervaldatum) {
         return body

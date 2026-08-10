@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface HuisregelRepository extends JpaRepository<Huisregel, Long> {
     List<Huisregel> findAllByOrderByOrderIndexAscIdAsc();
+
+    List<Huisregel> findByOrganization_IdOrderByOrderIndexAscIdAsc(Long organizationId);
 }

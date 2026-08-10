@@ -42,6 +42,10 @@ public class SupplyReport {
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     public Long getId() { return id; }
     public User getReportedBy() { return reportedBy; }
     public void setReportedBy(User reportedBy) { this.reportedBy = reportedBy; }
@@ -56,4 +60,6 @@ public class SupplyReport {
     public Instant getReportedAt() { return reportedAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public Organization getOrganization() { return organization; }
+    public void setOrganization(Organization organization) { this.organization = organization; }
 }

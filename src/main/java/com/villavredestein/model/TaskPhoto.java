@@ -29,6 +29,10 @@ public class TaskPhoto {
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private Instant uploadedAt = Instant.now();
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     public Long getId() { return id; }
     public CleaningTask getTask() { return task; }
     public void setTask(CleaningTask task) { this.task = task; }
@@ -37,4 +41,6 @@ public class TaskPhoto {
     public String getPhotoPath() { return photoPath; }
     public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
     public Instant getUploadedAt() { return uploadedAt; }
+    public Organization getOrganization() { return organization; }
+    public void setOrganization(Organization organization) { this.organization = organization; }
 }

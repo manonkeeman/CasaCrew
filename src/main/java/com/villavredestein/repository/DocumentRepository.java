@@ -15,6 +15,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     List<Document> findAllByOrderByIdDesc();
 
+    List<Document> findByOrganization_IdOrderByIdDesc(Long organizationId);
+
     @Query("""
             SELECT d
             FROM Document d
@@ -24,6 +26,19 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ORDER BY d.id DESC
             """)
     List<Document> findAccessibleForRole(@Param("role") String role);
+
+    @Query("""
+            SELECT d
+            FROM Document d
+            WHERE d.organization.id = :organizationId
+              AND (
+                   UPPER(d.roleAccess) = UPPER(:role)
+                OR UPPER(d.roleAccess) = 'ROLE_ALL'
+                OR UPPER(d.roleAccess) = 'ALL'
+              )
+            ORDER BY d.id DESC
+            """)
+    List<Document> findAccessibleForRoleInOrganization(@Param("organizationId") Long organizationId, @Param("role") String role);
 
     @Query("""
             SELECT d

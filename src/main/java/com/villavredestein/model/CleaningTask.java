@@ -60,6 +60,10 @@ public class CleaningTask {
     @JsonIgnoreProperties({"password", "hibernateLazyInitializer", "handler"})
     private User assignedTo;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
     public CleaningTask() {
     }
 
@@ -179,5 +183,13 @@ public class CleaningTask {
 
     public void setAssignedTo(User assignedTo) {
         this.assignedTo = assignedTo;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

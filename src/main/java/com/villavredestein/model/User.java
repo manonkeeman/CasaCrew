@@ -122,6 +122,10 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
+
 
     public User() {
     }
@@ -303,6 +307,14 @@ public class User {
 
     public void setRole(Role role) {
         this.role = require(role, "role");
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
 

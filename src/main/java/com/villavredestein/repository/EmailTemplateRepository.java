@@ -12,4 +12,8 @@ public interface EmailTemplateRepository extends JpaRepository<EmailTemplate, Lo
     Optional<EmailTemplate> findByType(EmailTemplate.TemplateType type);
 
     boolean existsByType(EmailTemplate.TemplateType type);
+
+    Optional<EmailTemplate> findByOrganization_IdAndType(Long organizationId, EmailTemplate.TemplateType type);
+
+    boolean existsByOrganization_IdAndType(Long organizationId, EmailTemplate.TemplateType type);
 }

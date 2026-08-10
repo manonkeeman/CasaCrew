@@ -14,4 +14,6 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
     List<Shift> findAllByOrderByShiftDateDescCheckInAtDesc();
     Optional<Shift> findFirstByCleanerAndCheckOutAtIsNullOrderByCheckInAtDesc(User cleaner);
     boolean existsByCleanerAndShiftDate(User cleaner, LocalDate date);
+
+    List<Shift> findByOrganization_IdOrderByShiftDateDescCheckInAtDesc(Long organizationId);
 }
