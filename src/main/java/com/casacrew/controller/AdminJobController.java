@@ -1,0 +1,82 @@
+package com.casacrew.controller;
+
+import com.casacrew.jobs.InvoiceReminderJob;
+import com.casacrew.jobs.MissedCleaningTaskJob;
+import com.casacrew.jobs.MonthlyRentInvoiceJob;
+import com.casacrew.jobs.MonthlyRentReminderJob;
+import com.casacrew.jobs.OverdueInvoiceJob;
+import com.casacrew.jobs.PaymentReminderJob;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping(value = "/api/admin/jobs", produces = MediaType.APPLICATION_JSON_VALUE)
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminJobController {
+
+    private final InvoiceReminderJob invoiceReminderJob;
+    private final OverdueInvoiceJob overdueInvoiceJob;
+    private final MissedCleaningTaskJob missedCleaningTaskJob;
+    private final MonthlyRentReminderJob monthlyRentReminderJob;
+    private final MonthlyRentInvoiceJob monthlyRentInvoiceJob;
+    private final PaymentReminderJob paymentReminderJob;
+
+    public AdminJobController(InvoiceReminderJob invoiceReminderJob, OverdueInvoiceJob overdueInvoiceJob,
+                              MissedCleaningTaskJob missedCleaningTaskJob, MonthlyRentReminderJob monthlyRentReminderJob,
+                              MonthlyRentInvoiceJob monthlyRentInvoiceJob, PaymentReminderJob paymentReminderJob) {
+        this.invoiceReminderJob = invoiceReminderJob;
+        this.overdueInvoiceJob = overdueInvoiceJob;
+        this.missedCleaningTaskJob = missedCleaningTaskJob;
+        this.monthlyRentReminderJob = monthlyRentReminderJob;
+        this.monthlyRentInvoiceJob = monthlyRentInvoiceJob;
+        this.paymentReminderJob = paymentReminderJob;
+    }
+
+    @PostMapping("/reminders/trigger")
+    public ResponseEntity<Map<String, String>> triggerReminders() {
+        invoiceReminderJob.sendReminders();
+        return ResponseEntity.ok(Map.of("message", "Factuurherinneringen zijn verstuurd"));
+    }
+
+    @PostMapping("/overdue/trigger")
+    public ResponseEntity<Map<String, String>> triggerOverdue() {
+        overdueInvoiceJob.sendOverdueReminders();
+        return ResponseEntity.ok(Map.of("message", "Vervallen facturen zijn verwerkt"));
+    }
+
+    @PostMapping("/cleaning/missed/trigger")
+    public ResponseEntity<Map<String, String>> triggerMissedCleaning() {
+        missedCleaningTaskJob.sendMissedTaskNotifications();
+        return ResponseEntity.ok(Map.of("message", "Meldingen voor gemiste schoonmaaktaken zijn verstuurd"));
+    }
+
+    @PostMapping("/rent-reminder/trigger")
+    public ResponseEntity<Map<String, String>> triggerRentReminder() {
+        monthlyRentReminderJob.sendRentReminders();
+        return ResponseEntity.ok(Map.of("message", "Huurherinneringen zijn verstuurd naar alle studenten"));
+    }
+
+    @PostMapping("/monthly-invoices/trigger")
+    public ResponseEntity<Map<String, String>> triggerMonthlyInvoices() {
+        monthlyRentInvoiceJob.run();
+        return ResponseEntity.ok(Map.of("message", "Maandelijkse facturen zijn aangemaakt"));
+    }
+
+    @PostMapping("/payment-reminder-1/trigger")
+    public ResponseEntity<Map<String, String>> triggerPaymentReminder1() {
+        paymentReminderJob.triggerFirstReminder();
+        return ResponseEntity.ok(Map.of("message", "Eerste betalingsherinnering is verstuurd"));
+    }
+
+    @PostMapping("/payment-reminder-2/trigger")
+    public ResponseEntity<Map<String, String>> triggerPaymentReminder2() {
+        paymentReminderJob.triggerSecondReminder();
+        return ResponseEntity.ok(Map.of("message", "Tweede betalingsherinnering is verstuurd"));
+    }
+}

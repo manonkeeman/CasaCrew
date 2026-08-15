@@ -12,11 +12,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.villavredestein</groupId>
-    <artifactId>villa-vredestein-bac</artifactId>
+    <groupId>com.casacrew</groupId>
+    <artifactId>casacrew-backend</artifactId>
     <version>1.0.0</version>
-    <name>Villa Vredestein Backend</name>
-    <description>Spring Boot backend voor Villa Vredestein student dashboard</description>
+    <name>CasaCrew Backend</name>
+    <description>Spring Boot backend voor CasaCrew, multi-tenant SaaS voor verhuurbeheer</description>
 
     <properties>
         <java.version>21</java.version>
