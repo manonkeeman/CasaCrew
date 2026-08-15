@@ -54,7 +54,7 @@ public class SecurityConfig {
 
     public SecurityConfig(
             SessionAuthenticationFilter sessionAuthenticationFilter,
-            @Value("${app.cors.allowed-origins:http://localhost:5173,https://*.netlify.app,https://villavredestein.com,https://www.villavredestein.com}")
+            @Value("${app.cors.allowed-origins:http://localhost:5173,https://*.netlify.app,https://casacrew.nl,https://www.casacrew.nl}")
             String allowedOrigins
     ) {
         this.sessionAuthenticationFilter = sessionAuthenticationFilter;

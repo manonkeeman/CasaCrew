@@ -149,7 +149,7 @@ public class InvoiceReminderJob {
         String due = invoice.getDueDate().format(DATE_NL);
         String description = normalizeDescription(invoice.getDescription());
 
-        String subject = "Herinnering huurbetaling Villa Vredestein – betaal vóór " + due;
+        String subject = "Herinnering huurbetaling CasaCrew – betaal vóór " + due;
 
         String body = String.format("""
                 Beste %s,
@@ -159,7 +159,7 @@ public class InvoiceReminderJob {
                 Beschrijving: %s
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """, safeName(student), amount, due, description);
 
         log.info("Reminder built (invoiceId={}, to={}, student={}, amount={}, due={})",

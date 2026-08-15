@@ -99,10 +99,10 @@ public class AdminEmailController {
             subject = template.renderSubject(naam, bedrag, maand, betaalLink, vervaldatum);
             body    = template.renderBody(naam, bedrag, maand, betaalLink, vervaldatum);
         } else {
-            subject = "Herinnering huur " + maand + " voor Villa Vredestein";
+            subject = "Herinnering huur " + maand + " voor CasaCrew";
             body    = "Beste " + naam + ",\n\nJe huur van " + bedrag + " voor " + maand
                     + " is nog niet betaald.\n\nBetaal via: " + betaalLink
-                    + "\n\nMet vriendelijke groet,\nVilla Vredestein";
+                    + "\n\nMet vriendelijke groet,\nCasaCrew";
         }
 
         mailService.sendInvoiceReminderMail(student.getEmail(), subject, body);

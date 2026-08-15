@@ -34,13 +34,13 @@ class CleaningScheduleServiceTest {
     }
 
     private Organization makeOrganization() {
-        Organization organization = new Organization("Villa Vredestein", "villa-vredestein");
+        Organization organization = new Organization("CasaCrew", "casacrew");
         org.springframework.test.util.ReflectionTestUtils.setField(organization, "id", 1L);
         return organization;
     }
 
     private void stubDefaultOrganization() {
-        when(organizationRepository.findBySlugIgnoreCase("villa-vredestein"))
+        when(organizationRepository.findBySlugIgnoreCase("casacrew"))
                 .thenReturn(Optional.of(makeOrganization()));
     }
 

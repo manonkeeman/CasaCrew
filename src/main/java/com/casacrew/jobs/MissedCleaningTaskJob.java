@@ -76,7 +76,7 @@ public class MissedCleaningTaskJob {
                 Vergeet niet om dit zo snel mogelijk in orde te brengen.
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """,
                 safeName(assignedTo),
                 task.getName(),

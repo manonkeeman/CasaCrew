@@ -41,7 +41,7 @@ class InvoiceServiceTest {
     @InjectMocks InvoiceService invoiceService;
 
     private Organization makeOrganization() {
-        Organization organization = new Organization("Villa Vredestein", "villa-vredestein");
+        Organization organization = new Organization("CasaCrew", "casacrew");
         ReflectionTestUtils.setField(organization, "id", ORG_ID);
         return organization;
     }
@@ -73,10 +73,10 @@ class InvoiceServiceTest {
         dto.setAmount(new BigDecimal("500.00"));
         dto.setIssueDate(LocalDate.of(2025, 7, 1));
         dto.setDueDate(LocalDate.of(2025, 7, 31));
-        dto.setStudentEmail("student@villavredestein.com");
+        dto.setStudentEmail("student@casacrew.nl");
 
-        User student = makeStudent("student", "student@villavredestein.com");
-        when(userRepository.findByEmailIgnoreCase("student@villavredestein.com")).thenReturn(Optional.of(student));
+        User student = makeStudent("student", "student@casacrew.nl");
+        when(userRepository.findByEmailIgnoreCase("student@casacrew.nl")).thenReturn(Optional.of(student));
 
         Invoice saved = withOrg(new Invoice(dto.getTitle(), dto.getDescription(), dto.getAmount(),
                 dto.getIssueDate(), dto.getDueDate(), 7, 2025, Invoice.InvoiceStatus.OPEN, student));
@@ -88,7 +88,7 @@ class InvoiceServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getTitle()).isEqualTo("Huur juli");
         assertThat(result.getAmount()).isEqualByComparingTo(new BigDecimal("500.00"));
-        assertThat(result.getStudentEmail()).isEqualTo("student@villavredestein.com");
+        assertThat(result.getStudentEmail()).isEqualTo("student@casacrew.nl");
         verify(invoiceRepository).save(any(Invoice.class));
     }
 
@@ -100,9 +100,9 @@ class InvoiceServiceTest {
         dto.setAmount(new BigDecimal("500.00"));
         dto.setIssueDate(LocalDate.of(2025, 7, 1));
         dto.setDueDate(LocalDate.of(2025, 7, 31));
-        dto.setStudentEmail("onbekend@villavredestein.com");
+        dto.setStudentEmail("onbekend@casacrew.nl");
 
-        when(userRepository.findByEmailIgnoreCase("onbekend@villavredestein.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailIgnoreCase("onbekend@casacrew.nl")).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> invoiceService.createInvoice(dto));
         verify(invoiceRepository, never()).save(any());
@@ -118,10 +118,10 @@ class InvoiceServiceTest {
         dto.setAmount(new BigDecimal("500.00"));
         dto.setIssueDate(LocalDate.of(2025, 7, 1));
         dto.setDueDate(LocalDate.of(2025, 7, 31));
-        dto.setStudentEmail("student@villavredestein.com");
+        dto.setStudentEmail("student@casacrew.nl");
 
-        User student = makeStudent("student", "student@villavredestein.com");
-        when(userRepository.findByEmailIgnoreCase("student@villavredestein.com")).thenReturn(Optional.of(student));
+        User student = makeStudent("student", "student@casacrew.nl");
+        when(userRepository.findByEmailIgnoreCase("student@casacrew.nl")).thenReturn(Optional.of(student));
         when(invoiceRepository.existsByStudentAndInvoiceMonthAndInvoiceYear(any(User.class), anyInt(), anyInt()))
                 .thenReturn(true);
 
@@ -135,8 +135,8 @@ class InvoiceServiceTest {
     @Test
     void getAllInvoices_returnsMappedDtoList() {
         stubCurrentOrganizationId();
-        User s1 = makeStudent("student", "student@villavredestein.com");
-        User s2 = makeStudent("student2", "student2@villavredestein.com");
+        User s1 = makeStudent("student", "student@casacrew.nl");
+        User s2 = makeStudent("student2", "student2@casacrew.nl");
 
         Invoice inv1 = withOrg(new Invoice("Factuur 1", null, new BigDecimal("100.00"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), 1, 2025, Invoice.InvoiceStatus.OPEN, s1));
@@ -159,7 +159,7 @@ class InvoiceServiceTest {
     @Test
     void getInvoiceById_existing_returnsDto() {
         stubCurrentOrganizationId();
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("150.00"),
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 31), 3, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
@@ -168,7 +168,7 @@ class InvoiceServiceTest {
         InvoiceResponseDTO result = invoiceService.getInvoiceById(1L);
 
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getStudentEmail()).isEqualTo("student@villavredestein.com");
+        assertThat(result.getStudentEmail()).isEqualTo("student@casacrew.nl");
     }
 
     @Test
@@ -183,13 +183,13 @@ class InvoiceServiceTest {
     @Test
     void getInvoiceByIdForCaller_admin_canAccessAnyInvoice() {
         stubCurrentOrganizationId();
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("100.00"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), 1, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
         when(invoiceRepository.findById(1L)).thenReturn(Optional.of(inv));
 
-        InvoiceResponseDTO result = invoiceService.getInvoiceByIdForCaller(1L, "admin@villavredestein.com", true);
+        InvoiceResponseDTO result = invoiceService.getInvoiceByIdForCaller(1L, "admin@casacrew.nl", true);
 
         assertThat(result.getId()).isEqualTo(1L);
     }
@@ -197,13 +197,13 @@ class InvoiceServiceTest {
     @Test
     void getInvoiceByIdForCaller_student_canAccessOwnInvoice() {
         stubCurrentOrganizationId();
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("100.00"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), 1, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
         when(invoiceRepository.findById(1L)).thenReturn(Optional.of(inv));
 
-        InvoiceResponseDTO result = invoiceService.getInvoiceByIdForCaller(1L, "student@villavredestein.com", false);
+        InvoiceResponseDTO result = invoiceService.getInvoiceByIdForCaller(1L, "student@casacrew.nl", false);
 
         assertThat(result.getId()).isEqualTo(1L);
     }
@@ -211,30 +211,30 @@ class InvoiceServiceTest {
     @Test
     void getInvoiceByIdForCaller_student_cannotAccessOtherInvoice_throwsAccessDenied() {
         stubCurrentOrganizationId();
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("100.00"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), 1, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
         when(invoiceRepository.findById(1L)).thenReturn(Optional.of(inv));
 
         assertThrows(AccessDeniedException.class,
-                () -> invoiceService.getInvoiceByIdForCaller(1L, "ander@villavredestein.com", false));
+                () -> invoiceService.getInvoiceByIdForCaller(1L, "ander@casacrew.nl", false));
     }
 
 
     @Test
     void getInvoicesForStudent_withValidEmail_returnsDtoList() {
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("100.00"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), 1, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
-        when(invoiceRepository.findByStudent_EmailIgnoreCaseOrderByIdDesc("student@villavredestein.com"))
+        when(invoiceRepository.findByStudent_EmailIgnoreCaseOrderByIdDesc("student@casacrew.nl"))
                 .thenReturn(List.of(inv));
 
-        List<InvoiceResponseDTO> result = invoiceService.getInvoicesForStudent("student@villavredestein.com");
+        List<InvoiceResponseDTO> result = invoiceService.getInvoicesForStudent("student@casacrew.nl");
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStudentEmail()).isEqualTo("student@villavredestein.com");
+        assertThat(result.get(0).getStudentEmail()).isEqualTo("student@casacrew.nl");
     }
 
     @Test
@@ -251,7 +251,7 @@ class InvoiceServiceTest {
     @Test
     void updateStatus_existing_updatesAndReturnsDto() {
         stubCurrentOrganizationId();
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("150.00"),
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 31), 3, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
@@ -284,7 +284,7 @@ class InvoiceServiceTest {
     @Test
     void deleteInvoice_existing_deletes() {
         stubCurrentOrganizationId();
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("150.00"),
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 31), 3, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
@@ -306,7 +306,7 @@ class InvoiceServiceTest {
 
     @Test
     void saveReminderMeta_validInvoice_saves() {
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("100.00"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), 1, 2025, Invoice.InvoiceStatus.OPEN, student));
         ReflectionTestUtils.setField(inv, "id", 1L);
@@ -324,7 +324,7 @@ class InvoiceServiceTest {
 
     @Test
     void saveReminderMeta_invoiceWithoutId_throwsIllegalArgumentException() {
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice inv = withOrg(new Invoice("Factuur 1", null, new BigDecimal("100.00"),
                 LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), 1, 2025, Invoice.InvoiceStatus.OPEN, student));
 
@@ -334,7 +334,7 @@ class InvoiceServiceTest {
 
     @Test
     void getAllOpenInvoices_returnsOnlyOpenInvoices() {
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice open1 = withOrg(new Invoice("Inv1", null, new BigDecimal("10.00"),
                 LocalDate.now(), LocalDate.now().plusDays(10),
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear(), Invoice.InvoiceStatus.OPEN, student));
@@ -353,7 +353,7 @@ class InvoiceServiceTest {
 
     @Test
     void getUpcomingInvoices_returnsUpcomingOpenInvoices() {
-        User student = makeStudent("student", "student@villavredestein.com");
+        User student = makeStudent("student", "student@casacrew.nl");
         Invoice upcoming = withOrg(new Invoice("Soon", null, new BigDecimal("10.00"),
                 LocalDate.now(), LocalDate.now().plusDays(3),
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear(), Invoice.InvoiceStatus.OPEN, student));

@@ -144,7 +144,7 @@ public class OverdueInvoiceJob {
                 Please pay as soon as possible. If you already paid, you can ignore this message.
 
                 Kind regards,
-                Villa Vredestein
+                CasaCrew
                 """, safeName(student), amount, due);
 
         try {

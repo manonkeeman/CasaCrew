@@ -1,6 +1,6 @@
-# Villa Vredestein — Backend API
+# CasaCrew — Backend API
 
-REST API voor het beheersysteem van Villa Vredestein, een studentenpension.  
+REST API voor CasaCrew, een multi-tenant SaaS voor het beheer van verhuurpanden (bewoners, facturen, schoonmaak, documenten en meer).
 Gebouwd met **Spring Boot 3** en **Java 21**.
 
 De volledige API-documentatie (alle endpoints, request bodies en voorbeeldresponses) is beschikbaar als **Postman collection** in de map `docs/`.
@@ -9,30 +9,32 @@ De volledige API-documentatie (alle endpoints, request bodies en voorbeeldrespon
 
 ## Technische stack
 
-| Onderdeel          | Keuze                            |
-|--------------------|----------------------------------|
-| Framework          | Spring Boot 3.3.4                |
-| Taal               | Java 21                          |
-| Database           | PostgreSQL 16                    |
-| Authenticatie      | JWT (JJWT) — stateless           |
-| Wachtwoord hashing | BCrypt (sterkte 8)               |
-| Betalen            | Mollie iDEAL                     |
-| Mail               | Gmail SMTP via JavaMailSender    |
-| Tests              | JUnit 5, Mockito, Testcontainers |
-| Coverage           | JaCoCo                           |
-| Build              | Maven                            |
+| Onderdeel          | Keuze                                          |
+|--------------------|-------------------------------------------------|
+| Framework          | Spring Boot 3.3.4                                |
+| Taal               | Java 21                                          |
+| Database           | PostgreSQL, migraties via Flyway                 |
+| Multi-tenancy      | Expliciete `organization_id` op elke entiteit    |
+| Authenticatie      | Opaak, database-backed sessietoken (Bearer) + Google OAuth |
+| Wachtwoord hashing | BCrypt (sterkte 8)                               |
+| Betalen            | bunq.me betaallinks                              |
+| Mail               | SMTP via JavaMailSender                          |
+| WhatsApp           | Twilio                                           |
+| Tests              | JUnit 5, Mockito, Testcontainers                 |
+| Coverage           | JaCoCo                                           |
+| Build              | Maven                                            |
 
 ---
 
 ## Rollen
 
 | Rol       | Omschrijving                                                    |
-|-----------|-----------------------------------------------------------------|
-| `ADMIN`   | Beheert gebruikers, kamers, facturen, documenten en taken      |
-| `STUDENT` | Ziet eigen facturen, betalingen, taken en documenten           |
-| `CLEANER` | Beheert schoonmaaktaken en rapporteert incidenten              |
+|-----------|-------------------------------------------------------------------|
+| `ADMIN`   | Beheert gebruikers, kamers, facturen, documenten en taken         |
+| `STUDENT` | Ziet eigen facturen, betalingen, taken en documenten               |
+| `CLEANER` | Beheert schoonmaaktaken en rapporteert incidenten                  |
 
-Alle endpoints behalve `/api/auth/**` en `/actuator/health` vereisen een geldig **Bearer JWT** in de `Authorization`-header.
+Alle endpoints behalve `/api/auth/**`, `/api/organizations` (self-registratie) en `/actuator/health` vereisen een geldig **Bearer-sessietoken** in de `Authorization`-header, uitgegeven door `POST /api/auth/login` of `/api/auth/google-login`.
 
 ---
 
@@ -48,8 +50,10 @@ Alle endpoints behalve `/api/auth/**` en `/actuator/health` vereisen een geldig 
 ### 1. Database aanmaken
 
 ```sql
-CREATE DATABASE villavredestein;
+CREATE DATABASE casacrew;
 ```
+
+Flyway maakt bij het opstarten automatisch alle tabellen aan (`src/main/resources/db/migration`) — geen handmatige schema-setup nodig.
 
 ### 2. `.env` aanmaken
 
@@ -58,12 +62,12 @@ Maak een `.env` bestand in de projectroot. Zie `.env.example` voor alle variabel
 ```env
 SPRING_PROFILES_ACTIVE=dev
 
-DB_URL=jdbc:postgresql://localhost:5432/villavredestein
+DB_URL=jdbc:postgresql://localhost:5432/casacrew
 DB_USERNAME=<jouw-db-gebruiker>
 DB_PASSWORD=<jouw-db-wachtwoord>
 
-JWT_SECRET=<willekeurige-string-van-minimaal-32-tekens>
-JWT_EXPIRY_SECONDS=3600
+SESSION_EXPIRY_SECONDS=3600
+GOOGLE_CLIENT_ID=<google-oauth-client-id>
 
 APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
 APP_UPLOAD_DIR=uploads
@@ -81,13 +85,16 @@ SEED_STUDENT_PASSWORD=<student-wachtwoord>
 MAIL_ENABLED=false
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=<gmail-adres>
-MAIL_PASSWORD=<gmail-app-wachtwoord>
+MAIL_USERNAME=<smtp-adres>
+MAIL_PASSWORD=<smtp-wachtwoord>
 MAIL_FROM=<afzenderadres>
 MAIL_BCC_ADMIN=<bcc-adres>
 
-MOLLIE_API_KEY=<mollie-api-sleutel>
-MOLLIE_WEBHOOK_URL=<publieke-webhook-url>
+TWILIO_ACCOUNT_SID=<twilio-account-sid>
+TWILIO_AUTH_TOKEN=<twilio-auth-token>
+TWILIO_WHATSAPP_FROM=<twilio-whatsapp-nummer>
+
+BUNQ_ME_USERNAME=<bunq-me-gebruikersnaam>
 ```
 
 > Het `.env` bestand staat in `.gitignore`. Zet nooit wachtwoorden of sleutels in versiebeheer.
@@ -99,6 +106,10 @@ mvn spring-boot:run
 ```
 
 De API is bereikbaar op `http://localhost:8080`.
+
+### 4. Organisatie aanmaken
+
+Nieuwe klanten registreren zichzelf via `POST /api/organizations` — dit maakt in één transactie de organisatie én de eerste admin-gebruiker aan, en geeft direct een sessietoken terug. Er is geen los seed-mechanisme nodig voor productiegebruik.
 
 ---
 
@@ -148,28 +159,35 @@ Gedekte services met unit tests: `InvoiceService`, `MailService`, `CleaningTaskS
 
 ```
 src/
-├── main/java/com/villavredestein/
+├── main/java/com/casacrew/
 │   ├── config/       # SecurityConfig, GlobalExceptionHandler, seeders
 │   ├── controller/   # REST-controllers
 │   ├── dto/          # Request- en response-DTOs (met Bean Validation)
 │   ├── jobs/         # Geplande taken (@Scheduled)
-│   ├── model/        # JPA-entiteiten
+│   ├── model/        # JPA-entiteiten (elk met organization_id)
 │   ├── repository/   # Spring Data JPA repositories
-│   ├── security/     # JwtService, JwtAuthenticationFilter
+│   ├── security/     # SessionAuthenticationFilter, AuthSessionService
 │   └── service/      # Bedrijfslogica
-└── test/java/com/villavredestein/
+└── test/java/com/casacrew/
     ├── integration/  # Integratietests (Testcontainers + MockMvc)
     └── service/      # Unit tests (Mockito)
 ```
 
 ---
 
+## Deployment
+
+`render.yaml` beschrijft een Render Blueprint (Docker web service + losse Postgres-database) — via **New + → Blueprint** in het Render-dashboard, repo selecteren, klaar. Zie het bestand zelf voor de exacte env-var-koppeling.
+
+---
+
 ## Beveiliging
 
-- **JWT** — stateless authenticatie; elk verzoek valideert het token in `JwtAuthenticationFilter`
-- **Ownership-check** — studenten kunnen uitsluitend hun eigen facturen, PDF's en betalingen opvragen; dit wordt gecontroleerd in de service-laag, niet alleen op rolniveau
+- **Sessietoken** — opaak, database-backed, server-side intrekbaar; elk verzoek valideert het token in `SessionAuthenticationFilter` (geen JWT, geen client-side decodeerbare payload)
+- **Multi-tenancy** — elke entiteit heeft een verplichte `organization_id`; alle queries zijn org-scoped op service-niveau, niet alleen op rolniveau
+- **Ownership-check** — studenten kunnen uitsluitend hun eigen facturen, PDF's en betalingen opvragen; dit wordt gecontroleerd in de service-laag
 - **Invoervalidatie** — Bean Validation (`@Valid`, `@NotBlank`, `@Email`, `@Size` e.d.) op alle request-DTOs; de `GlobalExceptionHandler` mapt validatiefouten naar HTTP 400
 - **BCrypt** — wachtwoorden worden nooit als plain-text opgeslagen
 - **CORS** — geconfigureerd via omgevingsvariabelen; geen wildcard in productie
 - **Uploads** — validatie op bestandstype en padtraversal; maximale bestandsgrootte 5 MB
-- **Geheimen** — alle sleutels en wachtwoorden via `.env`; nooit hardcoded in de codebase
+- **Geheimen** — alle sleutels en wachtwoorden via `.env` / omgevingsvariabelen; nooit hardcoded in de codebase

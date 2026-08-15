@@ -28,7 +28,7 @@ public class CasaCrewApplication {
         return args -> {
             if (!adminEmail.isBlank() && !adminPassword.isBlank()) {
                 userService.seedUserIfMissing(
-                        "Villa Vredestein Admin",
+                        "CasaCrew Admin",
                         adminEmail,
                         adminPassword,
                         User.Role.ADMIN

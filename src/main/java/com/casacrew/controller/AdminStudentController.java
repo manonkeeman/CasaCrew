@@ -52,10 +52,10 @@ public class AdminStudentController {
     private final CleaningScheduleService cleaningScheduleService;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.frontend-url:https://villa-vredestein.netlify.app}")
+    @Value("${app.frontend-url:https://casacrew.netlify.app}")
     private String frontendUrl;
 
-    @Value("${app.instagram:@villavredestein}")
+    @Value("${app.instagram:@casacrew}")
     private String instagram;
 
     public AdminStudentController(UserService userService,

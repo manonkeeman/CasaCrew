@@ -102,8 +102,8 @@ public class PaymentReminderJob {
                 subject = template.renderSubject(naam, bedrag, maand, betaalLink, vervaldatum);
                 body = template.renderBody(naam, bedrag, maand, betaalLink, vervaldatum);
             } else {
-                subject = "Herinnering huur " + maand + " voor Villa Vredestein";
-                body = "Beste " + naam + ",\n\nJe huur van " + bedrag + " voor " + maand + " is nog niet betaald.\n\nMet vriendelijke groet,\nVilla Vredestein";
+                subject = "Herinnering huur " + maand + " voor CasaCrew";
+                body = "Beste " + naam + ",\n\nJe huur van " + bedrag + " voor " + maand + " is nog niet betaald.\n\nMet vriendelijke groet,\nCasaCrew";
             }
 
             mailService.sendInvoiceReminderMail(email, subject, body);

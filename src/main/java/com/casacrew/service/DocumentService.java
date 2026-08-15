@@ -211,12 +211,12 @@ public class DocumentService {
                 String body = String.format("""
                         Beste %s,
 
-                        Er is een nieuw document beschikbaar gesteld op Villa Vredestein: "%s".
+                        Er is een nieuw document beschikbaar gesteld op CasaCrew: "%s".
 
                         Je kunt het inzien via de app.
 
                         Met vriendelijke groet,
-                        Villa Vredestein
+                        CasaCrew
                         """, student.getUsername() != null ? student.getUsername() : "bewoner", document.getTitle());
 
                 mailService.sendMailWithRole("ADMIN", student.getEmail(), subject, body);

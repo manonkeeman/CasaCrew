@@ -16,9 +16,9 @@ import static org.mockito.Mockito.*;
 
 class MailServiceTest {
 
-    private static final String FROM_EMAIL    = "no-reply@villavredestein.com";
-    private static final String ADMIN_BCC     = "audit@villavredestein.com";
-    private static final String STUDENT_TO    = "student@villavredestein.com";
+    private static final String FROM_EMAIL    = "no-reply@casacrew.nl";
+    private static final String ADMIN_BCC     = "audit@casacrew.nl";
+    private static final String STUDENT_TO    = "student@casacrew.nl";
 
     private JavaMailSender mailSender;
 
@@ -56,11 +56,11 @@ class MailServiceTest {
     void sendMailWithRole_withExplicitBcc_usesThatBcc() {
         MailService service = new MailService(mailSender, true, FROM_EMAIL, "");
 
-        service.sendMailWithRole("ADMIN", STUDENT_TO, "Test", "Body", "bcc@villavredestein.com");
+        service.sendMailWithRole("ADMIN", STUDENT_TO, "Test", "Body", "bcc@casacrew.nl");
 
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
-        assertThat(captor.getValue().getBcc()).containsExactly("bcc@villavredestein.com");
+        assertThat(captor.getValue().getBcc()).containsExactly("bcc@casacrew.nl");
     }
 
     @Test

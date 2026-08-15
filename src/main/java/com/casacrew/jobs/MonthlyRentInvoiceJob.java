@@ -154,7 +154,7 @@ public class MonthlyRentInvoiceJob {
         if (bunqMeUsername == null || bunqMeUsername.isBlank()) return "";
         try {
             String amountStr = amount.stripTrailingZeros().toPlainString();
-            String desc = java.net.URLEncoder.encode("Huur " + maand + " Villa Vredestein",
+            String desc = java.net.URLEncoder.encode("Huur " + maand + " CasaCrew",
                     java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
             return "https://bunq.me/" + bunqMeUsername + "/" + amountStr + "/" + desc;
         } catch (Exception e) {

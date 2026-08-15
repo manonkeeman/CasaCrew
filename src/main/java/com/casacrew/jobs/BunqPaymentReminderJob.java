@@ -99,7 +99,7 @@ public class BunqPaymentReminderJob {
         if (bunqMeUsername == null || bunqMeUsername.isBlank()) return "";
         try {
             String amountStr = amount.stripTrailingZeros().toPlainString();
-            String desc = URLEncoder.encode("Huur " + maand + " Villa Vredestein", StandardCharsets.UTF_8)
+            String desc = URLEncoder.encode("Huur " + maand + " CasaCrew", StandardCharsets.UTF_8)
                     .replace("+", "%20");
             return "https://bunq.me/" + bunqMeUsername + "/" + amountStr + "/" + desc;
         } catch (Exception e) {

@@ -22,13 +22,13 @@ public class DevSeeder implements ApplicationRunner {
     @Value("${SEED_ENABLED:false}")
     private boolean seedEnabled;
 
-    @Value("${SEED_ADMIN_EMAIL:admin@villavredestein.com}")
+    @Value("${SEED_ADMIN_EMAIL:admin@casacrew.nl}")
     private String adminEmail;
 
-    @Value("${SEED_CLEANER_EMAIL:cleaner@villavredestein.com}")
+    @Value("${SEED_CLEANER_EMAIL:cleaner@casacrew.nl}")
     private String cleanerEmail;
 
-    @Value("${SEED_STUDENT_EMAILS:student1@villavredestein.com}")
+    @Value("${SEED_STUDENT_EMAILS:student1@casacrew.nl}")
     private String studentEmailsCsv;
 
     @Value("${SEED_ADMIN_PASSWORD:}")

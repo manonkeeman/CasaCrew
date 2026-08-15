@@ -22,7 +22,7 @@ public abstract class BaseIntegrationTest {
 
     @Container
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
-            .withDatabaseName("villavredestein_test")
+            .withDatabaseName("casacrew_test")
             .withUsername("test")
             .withPassword("test");
 
@@ -41,6 +41,6 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected PasswordEncoder passwordEncoder;
 
-    protected static final String ADMIN_EMAIL = "admin@villavredestein.com";
+    protected static final String ADMIN_EMAIL = "admin@casacrew.nl";
     protected static final String ADMIN_USERNAME = "admin";
 }

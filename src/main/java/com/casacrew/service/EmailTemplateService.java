@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Zolang er nog geen zelfregistratie is (fase 4), bestaat er precies één
- * organisatie ("villa-vredestein", aangemaakt door de V4-backfill-migratie)
+ * organisatie ("casacrew", aangemaakt door de V4-backfill-migratie)
  * en seedt deze service de default templates daarvoor. Zodra fase 2 (deel B)
  * services organization-bewust maakt via UserService.currentOrganizationId(),
  * moet deze hardcoded lookup daarnaar verhuizen.
@@ -26,7 +26,7 @@ import java.util.List;
 public class EmailTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailTemplateService.class);
-    private static final String DEFAULT_ORGANIZATION_SLUG = "villa-vredestein";
+    private static final String DEFAULT_ORGANIZATION_SLUG = "casacrew";
 
     private final EmailTemplateRepository repo;
     private final OrganizationRepository organizationRepository;
@@ -43,7 +43,7 @@ public class EmailTemplateService {
     @PostConstruct
     public void seedDefaults() {
         seed(TemplateType.PAYMENT_NEW,
-                "Factuur {{maand}} – Villa Vredestein",
+                "Factuur {{maand}} – CasaCrew",
                 """
                 Beste {{naam}},
 
@@ -55,7 +55,7 @@ public class EmailTemplateService {
                 De vervaldatum is {{vervaldatum}}. Betaal op tijd om extra kosten te voorkomen.
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """);
 
         seed(TemplateType.PAYMENT_REMINDER_1,
@@ -71,7 +71,7 @@ public class EmailTemplateService {
                 Vervaldatum: {{vervaldatum}}.
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """);
 
         seed(TemplateType.PAYMENT_REMINDER_2,
@@ -87,7 +87,7 @@ public class EmailTemplateService {
                 Neem contact op met de beheerder als je vragen hebt.
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """);
     }
 

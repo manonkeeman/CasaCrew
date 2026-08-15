@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Zolang er nog geen zelfregistratie is (fase 4), bestaat er precies één
- * organisatie ("villa-vredestein", aangemaakt door de V4-backfill-migratie).
+ * organisatie ("casacrew", aangemaakt door de V4-backfill-migratie).
  * Zodra fase 2 (deel B) services organization-bewust maakt via
  * UserService.currentOrganizationId(), moet deze hardcoded lookup daarnaar
  * verhuizen.
@@ -24,7 +24,7 @@ import java.util.List;
 @Service
 public class CleaningScheduleService {
 
-    private static final String DEFAULT_ORGANIZATION_SLUG = "villa-vredestein";
+    private static final String DEFAULT_ORGANIZATION_SLUG = "casacrew";
 
     private static final Logger log = LoggerFactory.getLogger(CleaningScheduleService.class);
 

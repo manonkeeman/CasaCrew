@@ -16,11 +16,13 @@ spring:
     password: ${DB_PASSWORD:}
 
   flyway:
-    # Render's Postgres-instanties zijn niet altijd letterlijk leeg (eigen
-    # standaardobjecten in het public-schema), waardoor Flyway's eerste run
-    # weigert zonder baseline. baseline-version 0 betekent: niets is al
-    # toegepast, dus V1__baseline.sql t/m de laatste migratie draaien alsnog
-    # allemaal. Alleen veilig op een database zonder waardevolle data.
+    # Vangnet voor een Postgres-instantie die niet letterlijk leeg is (bv.
+    # eigen standaardobjecten van de hostingprovider in het public-schema)
+    # maar ook geen van onze eigen tabellen bevat -- baseline-version 0 zegt
+    # dan terecht "niets hiervan is al toegepast". Lost GEEN scenario op
+    # waarbij de app-tabellen zelf al (deels) bestaan zonder geregistreerde
+    # geschiedenis -- dat vraagt om een expliciete, bewuste keuze (schema
+    # resetten of een preciezere baseline-version), niet om een aanname hier.
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     baseline-version: ${FLYWAY_BASELINE_VERSION:0}
 

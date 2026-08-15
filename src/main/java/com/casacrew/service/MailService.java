@@ -33,7 +33,7 @@ public class MailService {
     public MailService(
             JavaMailSender mailSender,
             @Value("${app.mail.enabled:true}") boolean mailEnabled,
-            @Value("${app.mail.from:no-reply@villavredestein.local}") String from,
+            @Value("${app.mail.from:no-reply@casacrew.nl}") String from,
             @Value("${app.mail.bcc.admin:}") String bccAdmin
     ) {
         this.mailSender = mailSender;
@@ -45,7 +45,7 @@ public class MailService {
     protected MailService() {
         this.mailSender = null;
         this.mailEnabled = false;
-        this.from = "no-reply@villavredestein.local";
+        this.from = "no-reply@casacrew.nl";
         this.bccAdmin = "";
     }
 
@@ -88,7 +88,7 @@ public class MailService {
 
     public void sendPasswordResetMail(String to, String resetLink) {
         requireValidRecipient(to);
-        String subject = "Wachtwoord opnieuw instellen – Villa Vredestein";
+        String subject = "Wachtwoord opnieuw instellen – CasaCrew";
         String body = """
                 Hallo,
 
@@ -100,7 +100,7 @@ public class MailService {
                 Deze link is 30 minuten geldig. Als je dit verzoek niet hebt gedaan, kun je deze e-mail negeren.
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """.formatted(resetLink);
 
         if (!mailEnabled) {
@@ -127,11 +127,11 @@ public class MailService {
     public void sendWelcomeMail(String to, String naam, String kamer, String loginUrl,
                                 String wachtwoord, String websiteUrl, String instagram) {
         requireValidRecipient(to);
-        String subject = "Welkom bij Villa Vredestein!";
+        String subject = "Welkom bij CasaCrew!";
         String body = """
                 Hoi %s,
 
-                Welkom bij Villa Vredestein! We zijn ontzettend blij dat je er nu officieel bij hoort.
+                Welkom bij CasaCrew! We zijn ontzettend blij dat je er nu officieel bij hoort.
                 Hieronder vind je alles wat je nodig hebt om te starten.
 
                 ── Jouw inloggegevens ─────────────────────────────
@@ -144,8 +144,8 @@ public class MailService {
 
                 Log in en verander direct je wachtwoord via Instellingen → Wachtwoord wijzigen.
 
-                ── Over Villa Vredestein ────────────────────────────
-                Villa Vredestein is een gezellig studentenhuis in Tilburg waar samenwonen
+                ── Over CasaCrew ────────────────────────────
+                CasaCrew is een gezellig studentenhuis in Tilburg waar samenwonen
                 centraal staat. Via de app regel je je huur, bekijk je het schoonmaakrooster,
                 zie je mededelingen en blijf je op de hoogte van events in het huis.
 
@@ -159,7 +159,7 @@ public class MailService {
                 Welkom in de villa!
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """.formatted(naam, to, wachtwoord, kamer, loginUrl, instagram, websiteUrl);
 
         sendInternal("ADMIN", MailCategory.GENERIC, to, subject, body, null, maskEmail(to));
@@ -167,7 +167,7 @@ public class MailService {
     }
 
     public void sendWelcomeMail(String to, String naam, String kamer, String loginUrl, String wachtwoord) {
-        sendWelcomeMail(to, naam, kamer, loginUrl, wachtwoord, loginUrl.replace("/login", ""), "@villavredestein");
+        sendWelcomeMail(to, naam, kamer, loginUrl, wachtwoord, loginUrl.replace("/login", ""), "@casacrew");
     }
 
     public void sendInvoiceReminderMail(String to, String subject, String body) {

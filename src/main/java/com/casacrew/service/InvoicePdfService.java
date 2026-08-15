@@ -44,7 +44,7 @@ public class InvoicePdfService {
         Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, BRAND_COLOR);
         Font subFont = FontFactory.getFont(FontFactory.HELVETICA, 11, Color.DARK_GRAY);
 
-        Paragraph title = new Paragraph("Villa Vredestein", titleFont);
+        Paragraph title = new Paragraph("CasaCrew", titleFont);
         title.setAlignment(Element.ALIGN_LEFT);
         doc.add(title);
 
@@ -95,7 +95,7 @@ public class InvoicePdfService {
 
     private void addFooter(Document doc) throws DocumentException {
         Font footerFont = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.GRAY);
-        Paragraph footer = new Paragraph("Bedankt voor het op tijd betalen van de huur. Bij vragen kunt u contact opnemen via villavredestein@gmail.com", footerFont);
+        Paragraph footer = new Paragraph("Bedankt voor het op tijd betalen van de huur. Bij vragen kunt u contact opnemen via info@casacrew.nl", footerFont);
         footer.setAlignment(Element.ALIGN_CENTER);
         doc.add(footer);
     }

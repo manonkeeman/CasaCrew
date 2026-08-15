@@ -35,7 +35,7 @@ class CleaningTaskServiceTest {
     @InjectMocks CleaningTaskService cleaningTaskService;
 
     private Organization makeOrganization() {
-        Organization organization = new Organization("Villa Vredestein", "villa-vredestein");
+        Organization organization = new Organization("CasaCrew", "casacrew");
         ReflectionTestUtils.setField(organization, "id", ORG_ID);
         return organization;
     }

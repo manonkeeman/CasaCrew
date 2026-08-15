@@ -56,7 +56,7 @@ public class UserService implements UserDetailsService {
     private static final Set<String> ALLOWED_IMAGE_TYPES =
             Set.of("image/jpeg", "image/png", "image/webp");
 
-    private static final String DEFAULT_ORGANIZATION_SLUG = "villa-vredestein";
+    private static final String DEFAULT_ORGANIZATION_SLUG = "casacrew";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -149,7 +149,7 @@ public class UserService implements UserDetailsService {
      * Alleen voor de boot-time CommandLineRunner (CasaCrewApplication):
      * er is op dat moment geen ingelogde gebruiker om de organisatie van af
      * te leiden, dus dit gebruikt bewust de standaardorganisatie
-     * ("villa-vredestein", zie V4-backfill) in plaats van currentUser().
+     * ("casacrew", zie V4-backfill) in plaats van currentUser().
      */
     public UserResponseDTO seedUserIfMissing(String username, String email, String rawPassword, User.Role role) {
         String normalizedEmail = normalizeEmail(email);

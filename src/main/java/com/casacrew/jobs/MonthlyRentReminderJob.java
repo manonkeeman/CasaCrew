@@ -58,7 +58,7 @@ public class MonthlyRentReminderJob {
         }
 
         String name = student.getUsername() != null ? student.getUsername() : "Student";
-        String subject = "Herinnering huurbetaling " + monthLabel + " – Villa Vredestein";
+        String subject = "Herinnering huurbetaling " + monthLabel + " – CasaCrew";
         String body = """
                 Beste %s,
 
@@ -67,7 +67,7 @@ public class MonthlyRentReminderJob {
                 Betaal op tijd om extra kosten te voorkomen. Bij vragen kun je contact opnemen met de beheerder.
 
                 Met vriendelijke groet,
-                Villa Vredestein
+                CasaCrew
                 """.formatted(name, monthLabel, dueDateFormatted);
 
         try {
