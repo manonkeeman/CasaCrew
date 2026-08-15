@@ -15,6 +15,15 @@ spring:
     username: ${DB_USERNAME:}
     password: ${DB_PASSWORD:}
 
+  flyway:
+    # Render's Postgres-instanties zijn niet altijd letterlijk leeg (eigen
+    # standaardobjecten in het public-schema), waardoor Flyway's eerste run
+    # weigert zonder baseline. baseline-version 0 betekent: niets is al
+    # toegepast, dus V1__baseline.sql t/m de laatste migratie draaien alsnog
+    # allemaal. Alleen veilig op een database zonder waardevolle data.
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baseline-version: ${FLYWAY_BASELINE_VERSION:0}
+
   jpa:
     open-in-view: false
     hibernate:
