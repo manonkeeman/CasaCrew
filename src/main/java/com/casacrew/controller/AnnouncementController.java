@@ -2,13 +2,18 @@ package com.casacrew.controller;
 
 import com.casacrew.dto.AnnouncementResponseDTO;
 import com.casacrew.model.Announcement;
+import com.casacrew.model.User;
 import com.casacrew.repository.AnnouncementRepository;
+import com.casacrew.repository.UserRepository;
+import com.casacrew.service.PushNotificationService;
 import com.casacrew.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,12 +29,19 @@ import java.util.Map;
 @RequestMapping(value = "/api/announcements", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AnnouncementController {
 
+    private static final Logger log = LoggerFactory.getLogger(AnnouncementController.class);
+
     private final AnnouncementRepository announcementRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
+    private final PushNotificationService pushNotificationService;
 
-    public AnnouncementController(AnnouncementRepository announcementRepository, UserService userService) {
+    public AnnouncementController(AnnouncementRepository announcementRepository, UserService userService,
+                                  UserRepository userRepository, PushNotificationService pushNotificationService) {
         this.announcementRepository = announcementRepository;
         this.userService = userService;
+        this.userRepository = userRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @GetMapping
@@ -77,6 +89,15 @@ public class AnnouncementController {
             ann.setType(Announcement.AnnouncementType.mededeling);
         }
         Announcement saved = announcementRepository.save(ann);
+
+        try {
+            List<User> students = userRepository.findByOrganization_IdAndRole(
+                    userService.currentOrganizationId(), User.Role.STUDENT);
+            pushNotificationService.sendToUsers(students, saved.getTitle(), saved.getBody());
+        } catch (Exception e) {
+            log.error("Push notification failed for announcement id={}: {}", saved.getId(), e.getMessage());
+        }
+
         return ResponseEntity.ok(toDTO(saved));
     }
 

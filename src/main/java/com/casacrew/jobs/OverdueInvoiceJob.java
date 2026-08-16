@@ -6,6 +6,7 @@ import com.casacrew.model.User;
 import com.casacrew.repository.OrganizationRepository;
 import com.casacrew.service.InvoiceService;
 import com.casacrew.service.MailService;
+import com.casacrew.service.PushNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,12 +43,15 @@ public class OverdueInvoiceJob {
     private final InvoiceService invoiceService;
     private final MailService mailService;
     private final OrganizationRepository organizationRepository;
+    private final PushNotificationService pushNotificationService;
 
     public OverdueInvoiceJob(InvoiceService invoiceService, MailService mailService,
-                             OrganizationRepository organizationRepository) {
+                             OrganizationRepository organizationRepository,
+                             PushNotificationService pushNotificationService) {
         this.invoiceService = invoiceService;
         this.mailService = mailService;
         this.organizationRepository = organizationRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Transactional
@@ -157,6 +161,9 @@ public class OverdueInvoiceJob {
 
         try {
             mailService.sendInvoiceReminderMail(to, subject, body);
+
+            pushNotificationService.sendToUser(student, "Huur te laat",
+                    "Je huur van " + amount + " (vervaldatum " + due + ") is nog niet betaald.");
 
             invoice.markReminderSentNow();
             invoiceService.saveReminderMeta(invoice);

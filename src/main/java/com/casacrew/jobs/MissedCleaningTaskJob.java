@@ -6,6 +6,7 @@ import com.casacrew.model.User;
 import com.casacrew.repository.CleaningTaskRepository;
 import com.casacrew.repository.UserRepository;
 import com.casacrew.service.MailService;
+import com.casacrew.service.PushNotificationService;
 import com.casacrew.service.WhatsAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +31,16 @@ public class MissedCleaningTaskJob {
     private final MailService mailService;
     private final WhatsAppService whatsAppService;
     private final UserRepository userRepository;
+    private final PushNotificationService pushNotificationService;
 
     public MissedCleaningTaskJob(CleaningTaskRepository taskRepository, MailService mailService,
-                                 WhatsAppService whatsAppService, UserRepository userRepository) {
+                                 WhatsAppService whatsAppService, UserRepository userRepository,
+                                 PushNotificationService pushNotificationService) {
         this.taskRepository = taskRepository;
         this.mailService = mailService;
         this.whatsAppService = whatsAppService;
         this.userRepository = userRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Scheduled(cron = "0 30 9 * * *", zone = "Europe/Amsterdam")
@@ -103,6 +107,14 @@ public class MissedCleaningTaskJob {
                     safeName(assignedTo), task.getName(), task.getWeekNumber(), deadline);
             whatsAppService.send(phone, waMsg);
         }
+
+        try {
+            pushNotificationService.sendToUser(assignedTo, "Schoonmaaktaak nog open",
+                    safeName(assignedTo) + ", '" + task.getName() + "' (week " + task.getWeekNumber() + ") is nog niet afgerond.");
+        } catch (Exception e) {
+            log.error("Push notification failed (taskId={}): {}", task.getId(), e.getMessage());
+        }
+
         Organization organization = task.getOrganization();
         if (organization != null) {
             List<String> adminPhones = userRepository.findByOrganization_IdAndRole(organization.getId(), User.Role.ADMIN)

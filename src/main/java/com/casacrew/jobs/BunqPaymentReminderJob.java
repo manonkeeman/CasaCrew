@@ -6,6 +6,7 @@ import com.casacrew.model.User;
 import com.casacrew.repository.InvoiceRepository;
 import com.casacrew.repository.OrganizationRepository;
 import com.casacrew.repository.UserRepository;
+import com.casacrew.service.PushNotificationService;
 import com.casacrew.service.WhatsAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,15 +36,18 @@ public class BunqPaymentReminderJob {
     private final WhatsAppService whatsAppService;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
+    private final PushNotificationService pushNotificationService;
 
     public BunqPaymentReminderJob(InvoiceRepository invoiceRepository,
                                   WhatsAppService whatsAppService,
                                   OrganizationRepository organizationRepository,
-                                  UserRepository userRepository) {
+                                  UserRepository userRepository,
+                                  PushNotificationService pushNotificationService) {
         this.invoiceRepository = invoiceRepository;
         this.whatsAppService = whatsAppService;
         this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Scheduled(cron = "0 0 9 6 * *", zone = "Europe/Amsterdam")
@@ -81,25 +85,27 @@ public class BunqPaymentReminderJob {
             var student = invoice.getStudent();
             if (student == null) return;
 
-            String phone = student.getPhoneNumber();
-            if (phone == null || phone.isBlank()) return;
-
             String naam = student.getUsername();
             String bedrag = formatBedrag(invoice.getAmount());
             String vervaldatum = invoice.getDueDate() != null
                     ? invoice.getDueDate().format(DATE_NL)
                     : "zo snel mogelijk";
 
-            String betaalInstructie = paymentInstruction(organization, invoice.getAmount(), maand);
-            String waMsg = String.format(
-                    "Hallo %s! Dit is herinnering %d voor je huur van %s voor %s. " +
-                    "De betaling staat nog open. Maak het bedrag over vóór %s%s " +
-                    "Heb je al betaald? Dan kun je dit bericht negeren.",
-                    naam, reminderNumber, bedrag, maand, vervaldatum, betaalInstructie);
+            String phone = student.getPhoneNumber();
+            if (phone != null && !phone.isBlank()) {
+                String betaalInstructie = paymentInstruction(organization, invoice.getAmount(), maand);
+                String waMsg = String.format(
+                        "Hallo %s! Dit is herinnering %d voor je huur van %s voor %s. " +
+                        "De betaling staat nog open. Maak het bedrag over vóór %s%s " +
+                        "Heb je al betaald? Dan kun je dit bericht negeren.",
+                        naam, reminderNumber, bedrag, maand, vervaldatum, betaalInstructie);
+                whatsAppService.send(phone, waMsg);
+                whatsAppService.sendToAll(adminPhones, "Bunq herinnering " + reminderNumber + " verstuurd aan "
+                        + naam + " voor huur " + maand + " (" + bedrag + ").");
+            }
 
-            whatsAppService.send(phone, waMsg);
-            whatsAppService.sendToAll(adminPhones, "Bunq herinnering " + reminderNumber + " verstuurd aan "
-                    + naam + " voor huur " + maand + " (" + bedrag + ").");
+            pushNotificationService.sendToUser(student, "Huur nog open",
+                    "Herinnering " + reminderNumber + ": je huur van " + bedrag + " voor " + maand + " staat nog open.");
 
             log.info("BunqPaymentReminderJob reminder={} sent to student={}", reminderNumber, student.getId());
         } catch (Exception e) {

@@ -8,6 +8,7 @@ import com.casacrew.repository.UserRepository;
 import com.casacrew.service.EmailTemplateService;
 import com.casacrew.service.InvoiceService;
 import com.casacrew.service.MailService;
+import com.casacrew.service.PushNotificationService;
 import com.casacrew.service.WhatsAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ public class MonthlyRentInvoiceJob {
     private final EmailTemplateService emailTemplateService;
     private final WhatsAppService whatsAppService;
     private final OrganizationRepository organizationRepository;
+    private final PushNotificationService pushNotificationService;
 
     @Value("${app.rent.amount:350.00}")
     private BigDecimal rentAmount;
@@ -47,13 +49,15 @@ public class MonthlyRentInvoiceJob {
                                  MailService mailService,
                                  EmailTemplateService emailTemplateService,
                                  WhatsAppService whatsAppService,
-                                 OrganizationRepository organizationRepository) {
+                                 OrganizationRepository organizationRepository,
+                                 PushNotificationService pushNotificationService) {
         this.userRepository = userRepository;
         this.invoiceService = invoiceService;
         this.mailService = mailService;
         this.emailTemplateService = emailTemplateService;
         this.whatsAppService = whatsAppService;
         this.organizationRepository = organizationRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     private static final int DEFAULT_INVOICE_DAY = 1;
@@ -158,6 +162,9 @@ public class MonthlyRentInvoiceJob {
             }
             whatsAppService.sendToAll(adminPhones,
                     "Huur " + maand + " factuur aangemaakt voor " + naam + " (" + bedragFormatted + ").");
+
+            pushNotificationService.sendToUser(student, "Nieuwe huurfactuur",
+                    "Je huurfactuur van " + bedragFormatted + " voor " + maand + " is aangemaakt. Betaal vóór " + vervaldatum + ".");
 
         } catch (Exception e) {
             log.error("Error processing student {} for month={}/{}: {}", maskEmail(student.getEmail()), month, year, e.getMessage(), e);

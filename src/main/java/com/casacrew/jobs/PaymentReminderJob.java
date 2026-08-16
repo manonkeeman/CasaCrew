@@ -9,6 +9,7 @@ import com.casacrew.repository.UserRepository;
 import com.casacrew.service.EmailTemplateService;
 import com.casacrew.service.InvoiceService;
 import com.casacrew.service.MailService;
+import com.casacrew.service.PushNotificationService;
 import com.casacrew.service.WhatsAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,19 +40,22 @@ public class PaymentReminderJob {
     private final WhatsAppService whatsAppService;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
+    private final PushNotificationService pushNotificationService;
 
     public PaymentReminderJob(InvoiceService invoiceService,
                               MailService mailService,
                               EmailTemplateService emailTemplateService,
                               WhatsAppService whatsAppService,
                               OrganizationRepository organizationRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              PushNotificationService pushNotificationService) {
         this.invoiceService = invoiceService;
         this.mailService = mailService;
         this.emailTemplateService = emailTemplateService;
         this.whatsAppService = whatsAppService;
         this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
 
@@ -136,6 +140,9 @@ public class PaymentReminderJob {
             }
             whatsAppService.sendToAll(adminPhones,
                     "🔔 Herinnering " + reminderNumber + " verstuurd aan " + naam + " voor huur " + maand + " (" + bedrag + ").");
+
+            pushNotificationService.sendToUser(invoice.getStudent(), "Huur nog niet betaald",
+                    "Je huur van " + bedrag + " voor " + maand + " is nog niet betaald.");
 
             invoice.setReminderCount(invoice.getReminderCount() + 1);
             invoice.setLastReminderSentAt(LocalDateTime.now());

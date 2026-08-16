@@ -93,9 +93,16 @@ MAIL_BCC_ADMIN=<bcc-adres>
 TWILIO_ACCOUNT_SID=<twilio-account-sid>
 TWILIO_AUTH_TOKEN=<twilio-auth-token>
 TWILIO_WHATSAPP_FROM=<twilio-whatsapp-nummer>
+
+VAPID_PUBLIC_KEY=<vapid-public-key>
+VAPID_PRIVATE_KEY=<vapid-private-key>
+VAPID_SUBJECT=mailto:admin@casacrew.nl
+FIREBASE_SERVICE_ACCOUNT_JSON=<inhoud-van-firebase-service-account.json-als-één-regel>
 ```
 
 Bunq.me-gebruikersnaam, IBAN en rekeninghouder zijn per-organisatie instellingen (niet langer een env var) en worden door een admin ingesteld via `GET`/`PUT /api/admin/organization/payment-settings`. Admin-WhatsApp-notificaties gaan naar de telefoonnummers van de ADMIN-gebruikers van de betreffende organisatie, niet naar een vaste lijst.
+
+**Pushmeldingen**: `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` zijn nodig voor Web Push (browser/PWA) en moeten eenmalig gegenereerd worden (een geldig paar staat al klaar voor lokale ontwikkeling in `.env`; genereer een eigen paar voor productie, bv. met `npx web-push generate-vapid-keys`). `FIREBASE_SERVICE_ACCOUNT_JSON` is optioneel en alleen nodig voor FCM (native app-pushmeldingen) — zonder deze variabele blijft FCM een no-op (gelogd bij opstarten), Web Push blijft gewoon werken.
 
 > Het `.env` bestand staat in `.gitignore`. Zet nooit wachtwoorden of sleutels in versiebeheer.
 
