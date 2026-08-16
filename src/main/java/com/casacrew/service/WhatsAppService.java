@@ -35,9 +35,6 @@ public class WhatsAppService {
     @Value("${twilio.whatsapp.from:}")
     private String fromNumber;
 
-    @Value("${twilio.whatsapp.admin-numbers:}")
-    private String adminNumbersRaw;
-
     private final HttpClient http = HttpClient.newHttpClient();
 
     public boolean isConfigured() {
@@ -77,14 +74,6 @@ public class WhatsAppService {
             }
         } catch (IOException | InterruptedException e) {
             log.error("WhatsApp send error for {}: {}", maskPhone(toNumber), e.getMessage());
-        }
-    }
-
-    public void sendToAdmins(String message) {
-        if (adminNumbersRaw == null || adminNumbersRaw.isBlank()) return;
-        for (String num : adminNumbersRaw.split(",")) {
-            String n = num.trim();
-            if (!n.isEmpty()) send(n, message);
         }
     }
 

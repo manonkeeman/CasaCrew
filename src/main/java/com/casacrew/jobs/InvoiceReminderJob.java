@@ -1,7 +1,9 @@
 package com.casacrew.jobs;
 
 import com.casacrew.model.Invoice;
+import com.casacrew.model.Organization;
 import com.casacrew.model.User;
+import com.casacrew.repository.OrganizationRepository;
 import com.casacrew.service.InvoiceService;
 import com.casacrew.service.MailService;
 import org.slf4j.Logger;
@@ -41,10 +43,13 @@ public class InvoiceReminderJob {
 
     private final InvoiceService invoiceService;
     private final MailService mailService;
+    private final OrganizationRepository organizationRepository;
 
-    public InvoiceReminderJob(InvoiceService invoiceService, MailService mailService) {
+    public InvoiceReminderJob(InvoiceService invoiceService, MailService mailService,
+                              OrganizationRepository organizationRepository) {
         this.invoiceService = invoiceService;
         this.mailService = mailService;
+        this.organizationRepository = organizationRepository;
     }
 
     @Scheduled(cron = "0 0 9 * * *", zone = "Europe/Amsterdam")
@@ -52,14 +57,15 @@ public class InvoiceReminderJob {
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
 
-        log.info("InvoiceReminderJob started (daysBeforeDue={}, maxReminders={}, minHoursBetween={})",
-                daysBeforeDue, maxReminders, minHoursBetween);
+        List<Organization> organizations = organizationRepository.findAll();
+        log.info("InvoiceReminderJob started (organizations={}, daysBeforeDue={}, maxReminders={}, minHoursBetween={})",
+                organizations.size(), daysBeforeDue, maxReminders, minHoursBetween);
 
-        List<Invoice> candidates = invoiceService.getUpcomingInvoices(daysBeforeDue);
-        log.info("Candidates received: {} invoices", candidates.size());
-
-        for (Invoice invoice : candidates) {
-            processInvoice(invoice, today, now);
+        for (Organization organization : organizations) {
+            List<Invoice> candidates = invoiceService.getUpcomingInvoices(organization.getId(), daysBeforeDue);
+            for (Invoice invoice : candidates) {
+                processInvoice(invoice, today, now);
+            }
         }
 
         log.info("InvoiceReminderJob finished");

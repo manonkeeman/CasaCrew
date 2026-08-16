@@ -1,7 +1,9 @@
 package com.casacrew.jobs;
 
 import com.casacrew.model.Invoice;
+import com.casacrew.model.Organization;
 import com.casacrew.model.User;
+import com.casacrew.repository.OrganizationRepository;
 import com.casacrew.service.InvoiceService;
 import com.casacrew.service.MailService;
 import org.slf4j.Logger;
@@ -39,10 +41,13 @@ public class OverdueInvoiceJob {
 
     private final InvoiceService invoiceService;
     private final MailService mailService;
+    private final OrganizationRepository organizationRepository;
 
-    public OverdueInvoiceJob(InvoiceService invoiceService, MailService mailService) {
+    public OverdueInvoiceJob(InvoiceService invoiceService, MailService mailService,
+                             OrganizationRepository organizationRepository) {
         this.invoiceService = invoiceService;
         this.mailService = mailService;
+        this.organizationRepository = organizationRepository;
     }
 
     @Transactional
@@ -51,12 +56,15 @@ public class OverdueInvoiceJob {
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
 
-        List<Invoice> candidates = invoiceService.getAllOpenInvoices();
-        log.info("OverdueInvoiceJob started (candidates={}, maxReminders={}, minHoursBetween={})",
-                candidates.size(), maxReminders, minHoursBetween);
+        List<Organization> organizations = organizationRepository.findAll();
+        log.info("OverdueInvoiceJob started (organizations={}, maxReminders={}, minHoursBetween={})",
+                organizations.size(), maxReminders, minHoursBetween);
 
-        for (Invoice invoice : candidates) {
-            processInvoice(invoice, today, now);
+        for (Organization organization : organizations) {
+            List<Invoice> candidates = invoiceService.getAllOpenInvoices(organization.getId());
+            for (Invoice invoice : candidates) {
+                processInvoice(invoice, today, now);
+            }
         }
 
         log.info("OverdueInvoiceJob finished");

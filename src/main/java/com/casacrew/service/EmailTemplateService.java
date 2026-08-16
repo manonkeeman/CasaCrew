@@ -15,11 +15,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * Zolang er nog geen zelfregistratie is (fase 4), bestaat er precies één
- * organisatie ("casacrew", aangemaakt door de V4-backfill-migratie)
- * en seedt deze service de default templates daarvoor. Zodra fase 2 (deel B)
- * services organization-bewust maakt via UserService.currentOrganizationId(),
- * moet deze hardcoded lookup daarnaar verhuizen.
+ * Seedt de default e-mailtemplates voor de standaardorganisatie
+ * ("casacrew", aangemaakt door de V4-backfill-migratie) bij opstarten.
+ * Nieuwe organisaties krijgen geen geseede templates en vallen terug op de
+ * exception in getByType(...) totdat een admin ze zelf aanmaakt.
  */
 @Service
 @Transactional
@@ -110,21 +109,16 @@ public class EmailTemplateService {
     }
 
     /**
-     * Alleen voor de achtergrond-jobs (MonthlyRentInvoiceJob,
-     * PaymentReminderJob), die vandaag geen ingelogde gebruiker hebben om de
-     * organisatie van af te leiden -- draait daarom nog org-loos. Zolang er
-     * maar één organisatie bestaat is dat correct; zodra fase 4 een tweede
-     * organisatie toelaat, moeten deze jobs zelf per organisatie itereren en
-     * moet dit org-loze pad verdwijnen.
+     * Voor achtergrond-jobs die per organisatie itereren en dus geen
+     * ingelogde gebruiker hebben om de organisatie van af te leiden.
      */
-    public EmailTemplate getByType(TemplateType type) {
-        return repo.findByType(type)
+    public EmailTemplate getByType(Long organizationId, TemplateType type) {
+        return repo.findByOrganization_IdAndType(organizationId, type)
                 .orElseThrow(() -> new IllegalStateException("Email template niet gevonden voor type: " + type));
     }
 
     public EmailTemplate getByTypeInCurrentOrganization(TemplateType type) {
-        return repo.findByOrganization_IdAndType(userService.currentOrganizationId(), type)
-                .orElseThrow(() -> new IllegalStateException("Email template niet gevonden voor type: " + type));
+        return getByType(userService.currentOrganizationId(), type);
     }
 
     public EmailTemplate update(TemplateType type, String subject, String body) {

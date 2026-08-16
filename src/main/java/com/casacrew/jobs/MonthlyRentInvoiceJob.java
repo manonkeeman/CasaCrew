@@ -1,7 +1,9 @@
 package com.casacrew.jobs;
 
 import com.casacrew.model.EmailTemplate;
+import com.casacrew.model.Organization;
 import com.casacrew.model.User;
+import com.casacrew.repository.OrganizationRepository;
 import com.casacrew.repository.UserRepository;
 import com.casacrew.service.EmailTemplateService;
 import com.casacrew.service.InvoiceService;
@@ -35,23 +37,23 @@ public class MonthlyRentInvoiceJob {
     private final MailService mailService;
     private final EmailTemplateService emailTemplateService;
     private final WhatsAppService whatsAppService;
+    private final OrganizationRepository organizationRepository;
 
     @Value("${app.rent.amount:350.00}")
     private BigDecimal rentAmount;
-
-    @Value("${bunq.me.username:MaximStaal}")
-    private String bunqMeUsername;
 
     public MonthlyRentInvoiceJob(UserRepository userRepository,
                                  InvoiceService invoiceService,
                                  MailService mailService,
                                  EmailTemplateService emailTemplateService,
-                                 WhatsAppService whatsAppService) {
+                                 WhatsAppService whatsAppService,
+                                 OrganizationRepository organizationRepository) {
         this.userRepository = userRepository;
         this.invoiceService = invoiceService;
         this.mailService = mailService;
         this.emailTemplateService = emailTemplateService;
         this.whatsAppService = whatsAppService;
+        this.organizationRepository = organizationRepository;
     }
 
     @Scheduled(cron = "0 0 8 1 * *", zone = "Europe/Amsterdam")
@@ -63,17 +65,21 @@ public class MonthlyRentInvoiceJob {
 
         String maand = today.format(MONTH_NL);
         String vervaldatum = dueDate.format(DATE_NL);
-        log.info("MonthlyRentInvoiceJob started (maand={})", maand);
 
-        List<User> students = userRepository.findByRole(User.Role.STUDENT);
-        log.info("Creating invoices for {} students", students.size());
+        List<Organization> organizations = organizationRepository.findAll();
+        log.info("MonthlyRentInvoiceJob started (maand={}, organizations={})", maand, organizations.size());
 
-        EmailTemplate template = loadTemplate();
+        for (Organization organization : organizations) {
+            List<User> students = userRepository.findByOrganization_IdAndRole(organization.getId(), User.Role.STUDENT);
+            List<String> adminPhones = adminPhoneNumbers(organization.getId());
+            EmailTemplate template = loadTemplate(organization.getId());
 
-        for (User student : students) {
-            BigDecimal studentRent = student.getRentAmount() != null ? student.getRentAmount() : rentAmount;
-            String studentBedrag = formatBedrag(studentRent);
-            processStudent(student, month, year, dueDate, maand, vervaldatum, studentBedrag, studentRent, template);
+            for (User student : students) {
+                BigDecimal studentRent = student.getRentAmount() != null ? student.getRentAmount() : rentAmount;
+                String studentBedrag = formatBedrag(studentRent);
+                processStudent(student, organization, month, year, dueDate, maand, vervaldatum,
+                        studentBedrag, studentRent, template, adminPhones);
+            }
         }
 
         log.info("MonthlyRentInvoiceJob finished");
@@ -84,9 +90,9 @@ public class MonthlyRentInvoiceJob {
     }
 
 
-    private void processStudent(User student, int month, int year, LocalDate dueDate,
+    private void processStudent(User student, Organization organization, int month, int year, LocalDate dueDate,
                                 String maand, String vervaldatum, String bedragFormatted,
-                                BigDecimal studentRent, EmailTemplate template) {
+                                BigDecimal studentRent, EmailTemplate template, List<String> adminPhones) {
         try {
             var dto = new com.casacrew.dto.InvoiceRequestDTO();
             dto.setStudentEmail(student.getEmail());
@@ -98,7 +104,7 @@ public class MonthlyRentInvoiceJob {
 
             com.casacrew.dto.InvoiceResponseDTO invoiceDTO;
             try {
-                invoiceDTO = invoiceService.createInvoice(dto);
+                invoiceDTO = invoiceService.createInvoiceForOrganization(dto, organization);
             } catch (org.springframework.web.server.ResponseStatusException e) {
                 if (e.getStatusCode().value() == 409) {
                     log.info("Invoice already exists for student={} month={}/{}", student.getEmail(), month, year);
@@ -118,17 +124,17 @@ public class MonthlyRentInvoiceJob {
                 log.info("PAYMENT_NEW email sent to {}", maskEmail(student.getEmail()));
             }
 
-            String bunqLink = buildBunqLink(studentRent, maand);
+            String betaalInstructie = paymentInstruction(organization, studentRent, maand);
             String waMsg = String.format(
                     "Hallo %s! Je huurrekening van %s voor %s is aangemaakt. " +
-                    "Je kunt betalen vóór %s via overboeking naar NL94 INGB 0660 8510 83 ten name van M. Staal.%s" +
+                    "Je kunt betalen vóór %s%s" +
                     " Heb je vragen? Neem dan gerust contact op.",
-                    naam, bedragFormatted, maand, vervaldatum,
-                    bunqLink.isEmpty() ? "" : " Of betaal via bunq: " + bunqLink + ".");
+                    naam, bedragFormatted, maand, vervaldatum, betaalInstructie);
             if (student.getPhoneNumber() != null && !student.getPhoneNumber().isBlank()) {
                 whatsAppService.send(student.getPhoneNumber(), waMsg);
             }
-            whatsAppService.sendToAdmins("Huur " + maand + " factuur aangemaakt voor " + naam + " (" + bedragFormatted + ").");
+            whatsAppService.sendToAll(adminPhones,
+                    "Huur " + maand + " factuur aangemaakt voor " + naam + " (" + bedragFormatted + ").");
 
         } catch (Exception e) {
             log.error("Error processing student {} for month={}/{}: {}", maskEmail(student.getEmail()), month, year, e.getMessage(), e);
@@ -136,13 +142,21 @@ public class MonthlyRentInvoiceJob {
     }
 
 
-    private EmailTemplate loadTemplate() {
+    private EmailTemplate loadTemplate(Long organizationId) {
         try {
-            return emailTemplateService.getByType(EmailTemplate.TemplateType.PAYMENT_NEW);
+            return emailTemplateService.getByType(organizationId, EmailTemplate.TemplateType.PAYMENT_NEW);
         } catch (Exception e) {
-            log.error("Could not load PAYMENT_NEW template: {}", e.getMessage());
+            log.error("Could not load PAYMENT_NEW template for organizationId={}: {}", organizationId, e.getMessage());
             return null;
         }
+    }
+
+    private List<String> adminPhoneNumbers(Long organizationId) {
+        return userRepository.findByOrganization_IdAndRole(organizationId, User.Role.ADMIN)
+                .stream()
+                .map(User::getPhoneNumber)
+                .filter(phone -> phone != null && !phone.isBlank())
+                .toList();
     }
 
     private String formatBedrag(BigDecimal amount) {
@@ -150,7 +164,27 @@ public class MonthlyRentInvoiceJob {
         return nf.format(amount);
     }
 
-    String buildBunqLink(BigDecimal amount, String maand) {
+    private String paymentInstruction(Organization organization, BigDecimal amount, String maand) {
+        StringBuilder sb = new StringBuilder();
+        String iban = organization.getIban();
+        if (iban != null && !iban.isBlank()) {
+            String holder = organization.getAccountHolderName();
+            sb.append(" via overboeking naar ").append(iban);
+            if (holder != null && !holder.isBlank()) {
+                sb.append(" ten name van ").append(holder);
+            }
+            sb.append(".");
+        } else {
+            sb.append(".");
+        }
+        String bunqLink = buildBunqLink(organization.getBunqMeUsername(), amount, maand);
+        if (!bunqLink.isEmpty()) {
+            sb.append(" Of betaal via bunq: ").append(bunqLink).append(".");
+        }
+        return sb.toString();
+    }
+
+    String buildBunqLink(String bunqMeUsername, BigDecimal amount, String maand) {
         if (bunqMeUsername == null || bunqMeUsername.isBlank()) return "";
         try {
             String amountStr = amount.stripTrailingZeros().toPlainString();

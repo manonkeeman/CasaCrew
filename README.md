@@ -93,9 +93,9 @@ MAIL_BCC_ADMIN=<bcc-adres>
 TWILIO_ACCOUNT_SID=<twilio-account-sid>
 TWILIO_AUTH_TOKEN=<twilio-auth-token>
 TWILIO_WHATSAPP_FROM=<twilio-whatsapp-nummer>
-
-BUNQ_ME_USERNAME=<bunq-me-gebruikersnaam>
 ```
+
+Bunq.me-gebruikersnaam, IBAN en rekeninghouder zijn per-organisatie instellingen (niet langer een env var) en worden door een admin ingesteld via `GET`/`PUT /api/admin/organization/payment-settings`. Admin-WhatsApp-notificaties gaan naar de telefoonnummers van de ADMIN-gebruikers van de betreffende organisatie, niet naar een vaste lijst.
 
 > Het `.env` bestand staat in `.gitignore`. Zet nooit wachtwoorden of sleutels in versiebeheer.
 

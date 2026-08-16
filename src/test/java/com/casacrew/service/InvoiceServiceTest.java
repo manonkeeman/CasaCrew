@@ -64,7 +64,6 @@ class InvoiceServiceTest {
 
     @Test
     void createInvoice_withExistingStudent_savesAndReturnsDto() {
-        stubCurrentOrganizationId();
         when(userService.currentOrganization()).thenReturn(makeOrganization());
 
         InvoiceRequestDTO dto = new InvoiceRequestDTO();
@@ -94,7 +93,7 @@ class InvoiceServiceTest {
 
     @Test
     void createInvoice_studentNotFound_throwsEntityNotFoundException() {
-        stubCurrentOrganizationId();
+        when(userService.currentOrganization()).thenReturn(makeOrganization());
         InvoiceRequestDTO dto = new InvoiceRequestDTO();
         dto.setTitle("Huur juli");
         dto.setAmount(new BigDecimal("500.00"));
@@ -110,7 +109,6 @@ class InvoiceServiceTest {
 
     @Test
     void createInvoice_duplicateInMonth_throwsConflict() {
-        stubCurrentOrganizationId();
         when(userService.currentOrganization()).thenReturn(makeOrganization());
 
         InvoiceRequestDTO dto = new InvoiceRequestDTO();
@@ -122,7 +120,8 @@ class InvoiceServiceTest {
 
         User student = makeStudent("student", "student@casacrew.nl");
         when(userRepository.findByEmailIgnoreCase("student@casacrew.nl")).thenReturn(Optional.of(student));
-        when(invoiceRepository.existsByStudentAndInvoiceMonthAndInvoiceYear(any(User.class), anyInt(), anyInt()))
+        when(invoiceRepository.existsByOrganization_IdAndStudentAndInvoiceMonthAndInvoiceYear(
+                eq(ORG_ID), any(User.class), anyInt(), anyInt()))
                 .thenReturn(true);
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -341,13 +340,13 @@ class InvoiceServiceTest {
         Invoice open2 = withOrg(new Invoice("Inv2", null, new BigDecimal("20.00"),
                 LocalDate.now(), LocalDate.now().plusDays(20),
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear(), Invoice.InvoiceStatus.OPEN, student));
-        when(invoiceRepository.findByStatusOrderByIdDesc(Invoice.InvoiceStatus.OPEN))
+        when(invoiceRepository.findByOrganization_IdAndStatusOrderByIdDesc(ORG_ID, Invoice.InvoiceStatus.OPEN))
                 .thenReturn(List.of(open2, open1));
 
-        List<Invoice> result = invoiceService.getAllOpenInvoices();
+        List<Invoice> result = invoiceService.getAllOpenInvoices(ORG_ID);
 
         assertThat(result).allMatch(i -> i.getStatus() == Invoice.InvoiceStatus.OPEN);
-        verify(invoiceRepository).findByStatusOrderByIdDesc(Invoice.InvoiceStatus.OPEN);
+        verify(invoiceRepository).findByOrganization_IdAndStatusOrderByIdDesc(ORG_ID, Invoice.InvoiceStatus.OPEN);
     }
 
 
@@ -357,14 +356,14 @@ class InvoiceServiceTest {
         Invoice upcoming = withOrg(new Invoice("Soon", null, new BigDecimal("10.00"),
                 LocalDate.now(), LocalDate.now().plusDays(3),
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear(), Invoice.InvoiceStatus.OPEN, student));
-        when(invoiceRepository.findByStatusAndDueDateBetweenOrderByDueDateAsc(
-                eq(Invoice.InvoiceStatus.OPEN), any(LocalDate.class), any(LocalDate.class)))
+        when(invoiceRepository.findByOrganization_IdAndStatusAndDueDateBetweenOrderByDueDateAsc(
+                eq(ORG_ID), eq(Invoice.InvoiceStatus.OPEN), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(List.of(upcoming));
 
-        List<Invoice> result = invoiceService.getUpcomingInvoices(4);
+        List<Invoice> result = invoiceService.getUpcomingInvoices(ORG_ID, 4);
 
         assertThat(result).containsExactly(upcoming);
-        verify(invoiceRepository).findByStatusAndDueDateBetweenOrderByDueDateAsc(
-                eq(Invoice.InvoiceStatus.OPEN), any(LocalDate.class), any(LocalDate.class));
+        verify(invoiceRepository).findByOrganization_IdAndStatusAndDueDateBetweenOrderByDueDateAsc(
+                eq(ORG_ID), eq(Invoice.InvoiceStatus.OPEN), any(LocalDate.class), any(LocalDate.class));
     }
 }

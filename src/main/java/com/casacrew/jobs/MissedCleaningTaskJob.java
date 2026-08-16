@@ -1,8 +1,10 @@
 package com.casacrew.jobs;
 
 import com.casacrew.model.CleaningTask;
+import com.casacrew.model.Organization;
 import com.casacrew.model.User;
 import com.casacrew.repository.CleaningTaskRepository;
+import com.casacrew.repository.UserRepository;
 import com.casacrew.service.MailService;
 import com.casacrew.service.WhatsAppService;
 import org.slf4j.Logger;
@@ -27,11 +29,14 @@ public class MissedCleaningTaskJob {
     private final CleaningTaskRepository taskRepository;
     private final MailService mailService;
     private final WhatsAppService whatsAppService;
+    private final UserRepository userRepository;
 
-    public MissedCleaningTaskJob(CleaningTaskRepository taskRepository, MailService mailService, WhatsAppService whatsAppService) {
+    public MissedCleaningTaskJob(CleaningTaskRepository taskRepository, MailService mailService,
+                                 WhatsAppService whatsAppService, UserRepository userRepository) {
         this.taskRepository = taskRepository;
         this.mailService = mailService;
         this.whatsAppService = whatsAppService;
+        this.userRepository = userRepository;
     }
 
     @Scheduled(cron = "0 30 9 * * *", zone = "Europe/Amsterdam")
@@ -98,7 +103,16 @@ public class MissedCleaningTaskJob {
                     safeName(assignedTo), task.getName(), task.getWeekNumber(), deadline);
             whatsAppService.send(phone, waMsg);
         }
-        whatsAppService.sendToAdmins("🧹 " + safeName(assignedTo) + " heeft schoonmaaktaak '" + task.getName() + "' (week " + task.getWeekNumber() + ") nog niet voltooid.");
+        Organization organization = task.getOrganization();
+        if (organization != null) {
+            List<String> adminPhones = userRepository.findByOrganization_IdAndRole(organization.getId(), User.Role.ADMIN)
+                    .stream()
+                    .map(User::getPhoneNumber)
+                    .filter(p -> p != null && !p.isBlank())
+                    .toList();
+            whatsAppService.sendToAll(adminPhones,
+                    "🧹 " + safeName(assignedTo) + " heeft schoonmaaktaak '" + task.getName() + "' (week " + task.getWeekNumber() + ") nog niet voltooid.");
+        }
     }
 
     private String safeName(User user) {

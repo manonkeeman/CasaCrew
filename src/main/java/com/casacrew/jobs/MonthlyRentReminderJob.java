@@ -1,6 +1,8 @@
 package com.casacrew.jobs;
 
+import com.casacrew.model.Organization;
 import com.casacrew.model.User;
+import com.casacrew.repository.OrganizationRepository;
 import com.casacrew.repository.UserRepository;
 import com.casacrew.service.MailService;
 import org.slf4j.Logger;
@@ -25,10 +27,13 @@ public class MonthlyRentReminderJob {
 
     private final UserRepository userRepository;
     private final MailService mailService;
+    private final OrganizationRepository organizationRepository;
 
-    public MonthlyRentReminderJob(UserRepository userRepository, MailService mailService) {
+    public MonthlyRentReminderJob(UserRepository userRepository, MailService mailService,
+                                  OrganizationRepository organizationRepository) {
         this.userRepository = userRepository;
         this.mailService = mailService;
+        this.organizationRepository = organizationRepository;
     }
 
     @Scheduled(cron = "0 0 9 28 * *", zone = "Europe/Amsterdam")
@@ -38,16 +43,19 @@ public class MonthlyRentReminderJob {
         String monthLabel = today.format(MONTH_NL);
         String dueDateFormatted = dueDate.format(DateTimeFormatter.ofPattern("1 MMMM yyyy", NL));
 
-        log.info("MonthlyRentReminderJob started (month={})", monthLabel);
+        List<Organization> organizations = organizationRepository.findAll();
+        log.info("MonthlyRentReminderJob started (month={}, organizations={})", monthLabel, organizations.size());
 
-        List<User> students = userRepository.findByRole(User.Role.STUDENT);
-        log.info("Sending rent reminders to {} students", students.size());
-
-        for (User student : students) {
-            sendToStudent(student, monthLabel, dueDateFormatted);
+        int total = 0;
+        for (Organization organization : organizations) {
+            List<User> students = userRepository.findByOrganization_IdAndRole(organization.getId(), User.Role.STUDENT);
+            for (User student : students) {
+                sendToStudent(student, monthLabel, dueDateFormatted);
+            }
+            total += students.size();
         }
 
-        log.info("MonthlyRentReminderJob finished ({} students)", students.size());
+        log.info("MonthlyRentReminderJob finished ({} students)", total);
     }
 
     private void sendToStudent(User student, String monthLabel, String dueDateFormatted) {

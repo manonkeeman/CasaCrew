@@ -2,6 +2,10 @@ package com.casacrew.jobs;
 
 import com.casacrew.model.EmailTemplate;
 import com.casacrew.model.Invoice;
+import com.casacrew.model.Organization;
+import com.casacrew.model.User;
+import com.casacrew.repository.OrganizationRepository;
+import com.casacrew.repository.UserRepository;
 import com.casacrew.service.EmailTemplateService;
 import com.casacrew.service.InvoiceService;
 import com.casacrew.service.MailService;
@@ -33,15 +37,21 @@ public class PaymentReminderJob {
     private final MailService mailService;
     private final EmailTemplateService emailTemplateService;
     private final WhatsAppService whatsAppService;
+    private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
 
     public PaymentReminderJob(InvoiceService invoiceService,
                               MailService mailService,
                               EmailTemplateService emailTemplateService,
-                              WhatsAppService whatsAppService) {
+                              WhatsAppService whatsAppService,
+                              OrganizationRepository organizationRepository,
+                              UserRepository userRepository) {
         this.invoiceService = invoiceService;
         this.mailService = mailService;
         this.emailTemplateService = emailTemplateService;
         this.whatsAppService = whatsAppService;
+        this.organizationRepository = organizationRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -74,21 +84,27 @@ public class PaymentReminderJob {
         int month = today.getMonthValue();
         int year = today.getYear();
 
-        log.info("PaymentReminderJob [{}] started (month={}/{})", templateType, month, year);
+        List<Organization> organizations = organizationRepository.findAll();
+        log.info("PaymentReminderJob [{}] started (organizations={}, month={}/{})",
+                templateType, organizations.size(), month, year);
 
-        List<Invoice> unpaid = invoiceService.getUnpaidForMonth(month, year);
-        log.info("Found {} unpaid invoices for {}/{}", unpaid.size(), month, year);
+        int totalProcessed = 0;
+        for (Organization organization : organizations) {
+            List<Invoice> unpaid = invoiceService.getUnpaidForMonth(organization.getId(), month, year);
+            EmailTemplate template = loadTemplate(organization.getId(), templateType);
+            List<String> adminPhones = adminPhoneNumbers(organization.getId());
 
-        EmailTemplate template = loadTemplate(templateType);
-
-        for (Invoice invoice : unpaid) {
-            sendReminder(invoice, template, reminderNumber);
+            for (Invoice invoice : unpaid) {
+                sendReminder(invoice, template, reminderNumber, organization, adminPhones);
+            }
+            totalProcessed += unpaid.size();
         }
 
-        log.info("PaymentReminderJob [{}] finished ({} invoices processed)", templateType, unpaid.size());
+        log.info("PaymentReminderJob [{}] finished ({} invoices processed)", templateType, totalProcessed);
     }
 
-    private void sendReminder(Invoice invoice, EmailTemplate template, int reminderNumber) {
+    private void sendReminder(Invoice invoice, EmailTemplate template, int reminderNumber,
+                              Organization organization, List<String> adminPhones) {
         try {
             String email = invoice.getStudent().getEmail();
             String naam = invoice.getStudent().getUsername();
@@ -110,14 +126,16 @@ public class PaymentReminderJob {
 
             String phone = invoice.getStudent().getPhoneNumber();
             if (phone != null && !phone.isBlank()) {
+                String betaalInstructie = paymentInstruction(organization);
                 String waMsg = String.format(
                         "Hallo %s! Dit is herinnering %d voor je huur van %s voor %s. De huur is nog niet betaald. " +
-                        "Maak het bedrag over vóór %s naar NL94 INGB 0660 8510 83 ten name van M. Staal. " +
+                        "Maak het bedrag over vóór %s%s " +
                         "Heb je vragen? Neem dan gerust contact op.",
-                        naam, reminderNumber, bedrag, maand, vervaldatum);
+                        naam, reminderNumber, bedrag, maand, vervaldatum, betaalInstructie);
                 whatsAppService.send(phone, waMsg);
             }
-            whatsAppService.sendToAdmins("🔔 Herinnering " + reminderNumber + " verstuurd aan " + naam + " voor huur " + maand + " (" + bedrag + ").");
+            whatsAppService.sendToAll(adminPhones,
+                    "🔔 Herinnering " + reminderNumber + " verstuurd aan " + naam + " voor huur " + maand + " (" + bedrag + ").");
 
             invoice.setReminderCount(invoice.getReminderCount() + 1);
             invoice.setLastReminderSentAt(LocalDateTime.now());
@@ -130,12 +148,30 @@ public class PaymentReminderJob {
         }
     }
 
+    private String paymentInstruction(Organization organization) {
+        String iban = organization.getIban();
+        if (iban == null || iban.isBlank()) {
+            return ".";
+        }
+        String holder = organization.getAccountHolderName();
+        return holder != null && !holder.isBlank()
+                ? " naar " + iban + " ten name van " + holder + "."
+                : " naar " + iban + ".";
+    }
 
-    private EmailTemplate loadTemplate(EmailTemplate.TemplateType type) {
+    private List<String> adminPhoneNumbers(Long organizationId) {
+        return userRepository.findByOrganization_IdAndRole(organizationId, User.Role.ADMIN)
+                .stream()
+                .map(User::getPhoneNumber)
+                .filter(phone -> phone != null && !phone.isBlank())
+                .toList();
+    }
+
+    private EmailTemplate loadTemplate(Long organizationId, EmailTemplate.TemplateType type) {
         try {
-            return emailTemplateService.getByType(type);
+            return emailTemplateService.getByType(organizationId, type);
         } catch (Exception e) {
-            log.error("Could not load template {}: {}", type, e.getMessage());
+            log.error("Could not load template {} for organizationId={}: {}", type, organizationId, e.getMessage());
             return null;
         }
     }

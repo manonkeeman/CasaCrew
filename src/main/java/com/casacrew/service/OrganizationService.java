@@ -1,10 +1,12 @@
 package com.casacrew.service;
 
 import com.casacrew.dto.LoginResponseDTO;
+import com.casacrew.dto.OrganizationPaymentSettingsDTO;
 import com.casacrew.dto.OrganizationRegistrationRequestDTO;
 import com.casacrew.dto.UserResponseDTO;
 import com.casacrew.model.Organization;
 import com.casacrew.repository.OrganizationRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -77,6 +79,39 @@ public class OrganizationService {
             suffix++;
         }
         return candidate;
+    }
+
+    public OrganizationPaymentSettingsDTO getPaymentSettings() {
+        Organization organization = currentOrganization();
+        return toPaymentSettingsDTO(organization);
+    }
+
+    public OrganizationPaymentSettingsDTO updatePaymentSettings(OrganizationPaymentSettingsDTO request) {
+        Organization organization = currentOrganization();
+
+        organization.setBunqMeUsername(request.bunqMeUsername());
+        organization.setIban(request.iban());
+        organization.setAccountHolderName(request.accountHolderName());
+
+        organization = organizationRepository.save(organization);
+
+        log.info("Betaalinstellingen bijgewerkt (organizationId={})", organization.getId());
+
+        return toPaymentSettingsDTO(organization);
+    }
+
+    private Organization currentOrganization() {
+        Long organizationId = userService.currentOrganizationId();
+        return organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Organisatie niet gevonden: " + organizationId));
+    }
+
+    private OrganizationPaymentSettingsDTO toPaymentSettingsDTO(Organization organization) {
+        return new OrganizationPaymentSettingsDTO(
+                organization.getBunqMeUsername(),
+                organization.getIban(),
+                organization.getAccountHolderName()
+        );
     }
 
     private String safe(String value) {

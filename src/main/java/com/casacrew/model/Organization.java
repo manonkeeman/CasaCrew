@@ -32,6 +32,18 @@ public class Organization {
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Size(max = 80, message = "Bunq.me-gebruikersnaam mag maximaal 80 tekens zijn")
+    @Column(name = "bunq_me_username", length = 80)
+    private String bunqMeUsername;
+
+    @Size(max = 34, message = "IBAN mag maximaal 34 tekens zijn")
+    @Column(name = "iban", length = 34)
+    private String iban;
+
+    @Size(max = 120, message = "Naam rekeninghouder mag maximaal 120 tekens zijn")
+    @Column(name = "account_holder_name", length = 120)
+    private String accountHolderName;
+
     public Organization() {
     }
 
@@ -62,6 +74,38 @@ public class Organization {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getBunqMeUsername() {
+        return bunqMeUsername;
+    }
+
+    public void setBunqMeUsername(String bunqMeUsername) {
+        this.bunqMeUsername = blankToNull(bunqMeUsername);
+    }
+
+    public String getIban() {
+        return iban;
+    }
+
+    public void setIban(String iban) {
+        this.iban = blankToNull(iban);
+    }
+
+    public String getAccountHolderName() {
+        return accountHolderName;
+    }
+
+    public void setAccountHolderName(String accountHolderName) {
+        this.accountHolderName = blankToNull(accountHolderName);
+    }
+
+    private String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private String require(String value, String field) {

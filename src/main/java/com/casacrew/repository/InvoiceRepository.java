@@ -12,24 +12,9 @@ import java.util.Optional;
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
-    List<Invoice> findAllByOrderByIdDesc();
-
     List<Invoice> findByStudentOrderByIdDesc(User student);
 
     List<Invoice> findByStudent_EmailIgnoreCaseOrderByIdDesc(String email);
-
-    List<Invoice> findByStatusOrderByIdDesc(Invoice.InvoiceStatus status);
-
-    List<Invoice> findByStatusAndDueDateBeforeOrderByDueDateAsc(Invoice.InvoiceStatus status, LocalDate date);
-
-    List<Invoice> findByStatusAndDueDateBetweenOrderByDueDateAsc(Invoice.InvoiceStatus status, LocalDate start, LocalDate end);
-
-    boolean existsByStudentAndInvoiceMonthAndInvoiceYear(User student, int invoiceMonth, int invoiceYear);
-
-    List<Invoice> findByInvoiceMonthAndInvoiceYearAndStatusNotIn(
-            int invoiceMonth, int invoiceYear, List<Invoice.InvoiceStatus> excludedStatuses);
-
-    List<Invoice> findByInvoiceMonthAndInvoiceYearOrderByStudentUsernameAsc(int invoiceMonth, int invoiceYear);
 
     List<Invoice> findByStudentAndInvoiceMonthAndInvoiceYear(User student, int invoiceMonth, int invoiceYear);
 
@@ -42,4 +27,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     boolean existsByOrganization_IdAndStudentAndInvoiceMonthAndInvoiceYear(
             Long organizationId, User student, int invoiceMonth, int invoiceYear);
+
+    List<Invoice> findByOrganization_IdAndInvoiceMonthAndInvoiceYearAndStatusNotIn(
+            Long organizationId, int invoiceMonth, int invoiceYear, List<Invoice.InvoiceStatus> excludedStatuses);
 }

@@ -4,6 +4,7 @@ import com.casacrew.dto.InvoiceRequestDTO;
 import com.casacrew.dto.InvoiceResponseDTO;
 import com.casacrew.model.Invoice;
 import com.casacrew.model.Invoice.InvoiceStatus;
+import com.casacrew.model.Organization;
 import com.casacrew.model.User;
 import com.casacrew.repository.InvoiceRepository;
 import com.casacrew.repository.UserRepository;
@@ -44,8 +45,18 @@ public class InvoiceService {
 
 
     public InvoiceResponseDTO createInvoice(InvoiceRequestDTO dto) {
+        return createInvoiceForOrganization(dto, userService.currentOrganization());
+    }
 
-        Long organizationId = userService.currentOrganizationId();
+    /**
+     * Org-expliciete variant van createInvoice: leidt de organisatie niet af
+     * van SecurityContextHolder (die is leeg op een @Scheduled job-thread),
+     * maar krijgt hem meegegeven. Hiermee kunnen achtergrondtaken facturen
+     * aanmaken voor elke organisatie, niet alleen voor de ingelogde gebruiker.
+     */
+    public InvoiceResponseDTO createInvoiceForOrganization(InvoiceRequestDTO dto, Organization organization) {
+
+        Long organizationId = organization.getId();
         User student = userRepository.findByEmailIgnoreCase(dto.getStudentEmail())
                 .filter(u -> u.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() ->
@@ -64,9 +75,10 @@ public class InvoiceService {
                 InvoiceStatus.OPEN,
                 student
         );
-        invoice.setOrganization(userService.currentOrganization());
+        invoice.setOrganization(organization);
 
-        if (invoiceRepository.existsByStudentAndInvoiceMonthAndInvoiceYear(student, invoice.getInvoiceMonth(), invoice.getInvoiceYear())) {
+        if (invoiceRepository.existsByOrganization_IdAndStudentAndInvoiceMonthAndInvoiceYear(
+                organizationId, student, invoice.getInvoiceMonth(), invoice.getInvoiceYear())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Er bestaat al een factuur voor deze student in " + invoice.getInvoiceMonth() + "-" + invoice.getInvoiceYear()
@@ -143,14 +155,15 @@ public class InvoiceService {
     }
 
 
-    public List<Invoice> getAllOpenInvoices() {
-        return invoiceRepository.findByStatusOrderByIdDesc(InvoiceStatus.OPEN);
+    public List<Invoice> getAllOpenInvoices(Long organizationId) {
+        return invoiceRepository.findByOrganization_IdAndStatusOrderByIdDesc(organizationId, InvoiceStatus.OPEN);
     }
 
-    public List<Invoice> getUpcomingInvoices(int daysBeforeDue) {
+    public List<Invoice> getUpcomingInvoices(Long organizationId, int daysBeforeDue) {
         LocalDate today = LocalDate.now();
         LocalDate windowEnd = today.plusDays(daysBeforeDue);
-        return invoiceRepository.findByStatusAndDueDateBetweenOrderByDueDateAsc(InvoiceStatus.OPEN, today, windowEnd);
+        return invoiceRepository.findByOrganization_IdAndStatusAndDueDateBetweenOrderByDueDateAsc(
+                organizationId, InvoiceStatus.OPEN, today, windowEnd);
     }
 
     public byte[] generatePdf(Long id, String callerEmail, boolean isAdmin) {
@@ -181,9 +194,9 @@ public class InvoiceService {
         return findInvoiceOrThrow(id);
     }
 
-    public List<Invoice> getUnpaidForMonth(int month, int year) {
-        return invoiceRepository.findByInvoiceMonthAndInvoiceYearAndStatusNotIn(
-                month, year,
+    public List<Invoice> getUnpaidForMonth(Long organizationId, int month, int year) {
+        return invoiceRepository.findByOrganization_IdAndInvoiceMonthAndInvoiceYearAndStatusNotIn(
+                organizationId, month, year,
                 List.of(Invoice.InvoiceStatus.PAID, Invoice.InvoiceStatus.CANCELLED)
         );
     }
