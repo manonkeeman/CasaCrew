@@ -566,7 +566,8 @@ public class UserService implements UserDetailsService {
                 user.getAvailabilityStatus() != null ? user.getAvailabilityStatus().name() : null,
                 user.isStatusToggle(),
                 user.getProfileImagePath(),
-                user.getContractFile()
+                user.getContractFile(),
+                user.getRentAmount()
         );
     }
 }

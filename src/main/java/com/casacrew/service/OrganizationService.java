@@ -2,7 +2,9 @@ package com.casacrew.service;
 
 import com.casacrew.dto.LoginResponseDTO;
 import com.casacrew.dto.OrganizationPaymentSettingsDTO;
+import com.casacrew.dto.OrganizationProfileDTO;
 import com.casacrew.dto.OrganizationRegistrationRequestDTO;
+import com.casacrew.dto.OrganizationRentSettingsDTO;
 import com.casacrew.dto.UserResponseDTO;
 import com.casacrew.model.Organization;
 import com.casacrew.repository.OrganizationRepository;
@@ -23,13 +25,16 @@ public class OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final UserService userService;
     private final AuthSessionService authSessionService;
+    private final EmailTemplateService emailTemplateService;
 
     public OrganizationService(OrganizationRepository organizationRepository,
                                UserService userService,
-                               AuthSessionService authSessionService) {
+                               AuthSessionService authSessionService,
+                               EmailTemplateService emailTemplateService) {
         this.organizationRepository = organizationRepository;
         this.userService = userService;
         this.authSessionService = authSessionService;
+        this.emailTemplateService = emailTemplateService;
     }
 
     public LoginResponseDTO registerNewOrganization(OrganizationRegistrationRequestDTO request) {
@@ -37,6 +42,7 @@ public class OrganizationService {
 
         Organization organization = new Organization(organizationName, generateUniqueSlug(organizationName));
         organization = organizationRepository.save(organization);
+        emailTemplateService.seedDefaultsForOrganization(organization);
 
         UserResponseDTO admin = userService.createFirstAdminForNewOrganization(
                 request.adminUsername().trim(),
@@ -98,6 +104,53 @@ public class OrganizationService {
         log.info("Betaalinstellingen bijgewerkt (organizationId={})", organization.getId());
 
         return toPaymentSettingsDTO(organization);
+    }
+
+    public OrganizationProfileDTO getProfile() {
+        return toProfileDTO(currentOrganization());
+    }
+
+    public OrganizationProfileDTO updateProfile(OrganizationProfileDTO request) {
+        Organization organization = currentOrganization();
+
+        organization.setName(request.name());
+        organization.setAddress(request.address());
+
+        organization = organizationRepository.save(organization);
+
+        log.info("Organisatieprofiel bijgewerkt (organizationId={})", organization.getId());
+
+        return toProfileDTO(organization);
+    }
+
+    public OrganizationRentSettingsDTO getRentSettings() {
+        return toRentSettingsDTO(currentOrganization());
+    }
+
+    public OrganizationRentSettingsDTO updateRentSettings(OrganizationRentSettingsDTO request) {
+        Organization organization = currentOrganization();
+
+        organization.setDefaultRentAmount(request.defaultRentAmount());
+        organization.setRentInvoiceDayOfMonth(request.rentInvoiceDayOfMonth());
+        organization.setRentDueDayOfMonth(request.rentDueDayOfMonth());
+
+        organization = organizationRepository.save(organization);
+
+        log.info("Huurinstellingen bijgewerkt (organizationId={})", organization.getId());
+
+        return toRentSettingsDTO(organization);
+    }
+
+    private OrganizationProfileDTO toProfileDTO(Organization organization) {
+        return new OrganizationProfileDTO(organization.getName(), organization.getAddress());
+    }
+
+    private OrganizationRentSettingsDTO toRentSettingsDTO(Organization organization) {
+        return new OrganizationRentSettingsDTO(
+                organization.getDefaultRentAmount(),
+                organization.getRentInvoiceDayOfMonth(),
+                organization.getRentDueDayOfMonth()
+        );
     }
 
     private Organization currentOrganization() {

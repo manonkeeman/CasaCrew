@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,6 +44,19 @@ public class Organization {
     @Size(max = 120, message = "Naam rekeninghouder mag maximaal 120 tekens zijn")
     @Column(name = "account_holder_name", length = 120)
     private String accountHolderName;
+
+    @Size(max = 255, message = "Adres mag maximaal 255 tekens zijn")
+    @Column(name = "address", length = 255)
+    private String address;
+
+    @Column(name = "default_rent_amount", precision = 10, scale = 2)
+    private BigDecimal defaultRentAmount;
+
+    @Column(name = "rent_invoice_day_of_month")
+    private Integer rentInvoiceDayOfMonth;
+
+    @Column(name = "rent_due_day_of_month")
+    private Integer rentDueDayOfMonth;
 
     public Organization() {
     }
@@ -98,6 +112,38 @@ public class Organization {
 
     public void setAccountHolderName(String accountHolderName) {
         this.accountHolderName = blankToNull(accountHolderName);
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = blankToNull(address);
+    }
+
+    public BigDecimal getDefaultRentAmount() {
+        return defaultRentAmount;
+    }
+
+    public void setDefaultRentAmount(BigDecimal defaultRentAmount) {
+        this.defaultRentAmount = defaultRentAmount;
+    }
+
+    public Integer getRentInvoiceDayOfMonth() {
+        return rentInvoiceDayOfMonth;
+    }
+
+    public void setRentInvoiceDayOfMonth(Integer rentInvoiceDayOfMonth) {
+        this.rentInvoiceDayOfMonth = rentInvoiceDayOfMonth;
+    }
+
+    public Integer getRentDueDayOfMonth() {
+        return rentDueDayOfMonth;
+    }
+
+    public void setRentDueDayOfMonth(Integer rentDueDayOfMonth) {
+        this.rentDueDayOfMonth = rentDueDayOfMonth;
     }
 
     private String blankToNull(String value) {

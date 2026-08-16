@@ -56,26 +56,44 @@ public class MonthlyRentInvoiceJob {
         this.organizationRepository = organizationRepository;
     }
 
-    @Scheduled(cron = "0 0 8 1 * *", zone = "Europe/Amsterdam")
+    private static final int DEFAULT_INVOICE_DAY = 1;
+    private static final int DEFAULT_DUE_DAY = 8;
+
+    @Scheduled(cron = "0 0 8 * * *", zone = "Europe/Amsterdam")
     public void createMonthlyInvoices() {
+        createMonthlyInvoices(false);
+    }
+
+    private void createMonthlyInvoices(boolean force) {
         LocalDate today = LocalDate.now();
         int month = today.getMonthValue();
         int year = today.getYear();
-        LocalDate dueDate = today.plusDays(7); // due 8th of the month
-
-        String maand = today.format(MONTH_NL);
-        String vervaldatum = dueDate.format(DATE_NL);
 
         List<Organization> organizations = organizationRepository.findAll();
-        log.info("MonthlyRentInvoiceJob started (maand={}, organizations={})", maand, organizations.size());
+        log.info("MonthlyRentInvoiceJob started ({} organizations, day={}, force={})", organizations.size(), today.getDayOfMonth(), force);
 
         for (Organization organization : organizations) {
+            int invoiceDay = organization.getRentInvoiceDayOfMonth() != null
+                    ? organization.getRentInvoiceDayOfMonth() : DEFAULT_INVOICE_DAY;
+            if (!force && today.getDayOfMonth() != invoiceDay) {
+                continue;
+            }
+            int dueDay = organization.getRentDueDayOfMonth() != null
+                    ? organization.getRentDueDayOfMonth() : DEFAULT_DUE_DAY;
+            LocalDate dueDate = computeDueDate(today, invoiceDay, dueDay);
+
+            String maand = today.format(MONTH_NL);
+            String vervaldatum = dueDate.format(DATE_NL);
+
+            BigDecimal organizationDefaultRent = organization.getDefaultRentAmount() != null
+                    ? organization.getDefaultRentAmount() : rentAmount;
+
             List<User> students = userRepository.findByOrganization_IdAndRole(organization.getId(), User.Role.STUDENT);
             List<String> adminPhones = adminPhoneNumbers(organization.getId());
             EmailTemplate template = loadTemplate(organization.getId());
 
             for (User student : students) {
-                BigDecimal studentRent = student.getRentAmount() != null ? student.getRentAmount() : rentAmount;
+                BigDecimal studentRent = student.getRentAmount() != null ? student.getRentAmount() : organizationDefaultRent;
                 String studentBedrag = formatBedrag(studentRent);
                 processStudent(student, organization, month, year, dueDate, maand, vervaldatum,
                         studentBedrag, studentRent, template, adminPhones);
@@ -85,8 +103,13 @@ public class MonthlyRentInvoiceJob {
         log.info("MonthlyRentInvoiceJob finished");
     }
 
+    private LocalDate computeDueDate(LocalDate issueDate, int invoiceDay, int dueDay) {
+        LocalDate dueDate = issueDate.withDayOfMonth(dueDay);
+        return dueDay < invoiceDay ? dueDate.plusMonths(1) : dueDate;
+    }
+
     public void run() {
-        createMonthlyInvoices();
+        createMonthlyInvoices(true);
     }
 
 

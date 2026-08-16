@@ -1,5 +1,7 @@
 package com.casacrew.dto;
 
+import java.math.BigDecimal;
+
 public record UserResponseDTO(
         Long id,
         String username,
@@ -17,5 +19,6 @@ public record UserResponseDTO(
         String availabilityStatus,
         boolean statusToggle,
         String profileImagePath,
-        String contractFile
+        String contractFile,
+        BigDecimal rentAmount
 ) {}
