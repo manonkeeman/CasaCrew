@@ -7,6 +7,7 @@ import com.casacrew.repository.AnnouncementRepository;
 import com.casacrew.repository.UserRepository;
 import com.casacrew.service.PushNotificationService;
 import com.casacrew.service.UserService;
+import com.casacrew.service.WhatsAppService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -35,13 +36,16 @@ public class AnnouncementController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final PushNotificationService pushNotificationService;
+    private final WhatsAppService whatsAppService;
 
     public AnnouncementController(AnnouncementRepository announcementRepository, UserService userService,
-                                  UserRepository userRepository, PushNotificationService pushNotificationService) {
+                                  UserRepository userRepository, PushNotificationService pushNotificationService,
+                                  WhatsAppService whatsAppService) {
         this.announcementRepository = announcementRepository;
         this.userService = userService;
         this.userRepository = userRepository;
         this.pushNotificationService = pushNotificationService;
+        this.whatsAppService = whatsAppService;
     }
 
     @GetMapping
@@ -90,12 +94,24 @@ public class AnnouncementController {
         }
         Announcement saved = announcementRepository.save(ann);
 
+        List<User> students = userRepository.findByOrganization_IdAndRole(
+                userService.currentOrganizationId(), User.Role.STUDENT);
+
         try {
-            List<User> students = userRepository.findByOrganization_IdAndRole(
-                    userService.currentOrganizationId(), User.Role.STUDENT);
             pushNotificationService.sendToUsers(students, saved.getTitle(), saved.getBody());
         } catch (Exception e) {
             log.error("Push notification failed for announcement id={}: {}", saved.getId(), e.getMessage());
+        }
+
+        try {
+            List<String> studentPhones = students.stream()
+                    .map(User::getPhoneNumber)
+                    .filter(phone -> phone != null && !phone.isBlank())
+                    .toList();
+            String waMsg = String.format("📢 %s: %s", saved.getTitle(), saved.getBody());
+            whatsAppService.sendToAll(studentPhones, waMsg);
+        } catch (Exception e) {
+            log.error("WhatsApp notification failed for announcement id={}: {}", saved.getId(), e.getMessage());
         }
 
         return ResponseEntity.ok(toDTO(saved));

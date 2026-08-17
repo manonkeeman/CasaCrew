@@ -21,6 +21,11 @@ public class SupplyReport {
     @JsonIgnoreProperties({"password", "invoices", "hibernateLazyInitializer"})
     private User reportedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id")
+    @JsonIgnoreProperties({"password", "invoices", "hibernateLazyInitializer"})
+    private User student;
+
     @NotBlank
     @Column(name = "item_name", nullable = false, length = 200)
     private String itemName;
@@ -49,6 +54,8 @@ public class SupplyReport {
     public Long getId() { return id; }
     public User getReportedBy() { return reportedBy; }
     public void setReportedBy(User reportedBy) { this.reportedBy = reportedBy; }
+    public User getStudent() { return student; }
+    public void setStudent(User student) { this.student = student; }
     public String getItemName() { return itemName; }
     public void setItemName(String itemName) { this.itemName = itemName; }
     public String getNotes() { return notes; }
