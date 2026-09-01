@@ -121,6 +121,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/users/me/password").hasAnyRole(USER_ROLES)
                         .requestMatchers(HttpMethod.POST, "/api/users/me/profile-photo").hasAnyRole(USER_ROLES)
                         .requestMatchers(HttpMethod.DELETE, "/api/users/me/profile-photo").hasAnyRole(USER_ROLES)
+                        .requestMatchers(HttpMethod.GET, "/api/users/housemates").hasAnyRole("STUDENT", "CLEANER")
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/contract").hasAnyRole("ADMIN", "STUDENT")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/users/**").hasRole("ADMIN")

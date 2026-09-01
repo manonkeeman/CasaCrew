@@ -1,5 +1,6 @@
 package com.casacrew.controller;
 
+import com.casacrew.dto.ShiftResponseDTO;
 import com.casacrew.model.Shift;
 import com.casacrew.model.User;
 import com.casacrew.repository.ShiftRepository;
@@ -34,21 +35,24 @@ public class ShiftsController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Shift>> getAll() {
+    public ResponseEntity<List<ShiftResponseDTO>> getAll() {
         return ResponseEntity.ok(
-                shiftRepository.findByOrganization_IdOrderByShiftDateDescCheckInAtDesc(userService.currentOrganizationId()));
+                shiftRepository.findByOrganization_IdOrderByShiftDateDescCheckInAtDesc(userService.currentOrganizationId())
+                        .stream().map(ShiftResponseDTO::from).toList());
     }
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('CLEANER')")
-    public ResponseEntity<List<Shift>> getMine(Authentication auth) {
+    public ResponseEntity<List<ShiftResponseDTO>> getMine(Authentication auth) {
         User cleaner = resolveUser(auth.getName());
-        return ResponseEntity.ok(shiftRepository.findByCleanerOrderByShiftDateDescCheckInAtDesc(cleaner));
+        return ResponseEntity.ok(
+                shiftRepository.findByCleanerOrderByShiftDateDescCheckInAtDesc(cleaner)
+                        .stream().map(ShiftResponseDTO::from).toList());
     }
 
     @PostMapping("/checkin")
     @PreAuthorize("hasRole('CLEANER')")
-    public ResponseEntity<Shift> checkIn(@RequestBody(required = false) Map<String, String> body,
+    public ResponseEntity<ShiftResponseDTO> checkIn(@RequestBody(required = false) Map<String, String> body,
                                          Authentication auth) {
         User cleaner = resolveUser(auth.getName());
         LocalDate today = LocalDate.now();
@@ -60,22 +64,26 @@ public class ShiftsController {
         shift.setCheckInAt(Instant.now());
         if (body != null && body.get("notes") != null) shift.setNotes(body.get("notes"));
 
-        return ResponseEntity.ok(shiftRepository.save(shift));
+        return ResponseEntity.ok(ShiftResponseDTO.from(shiftRepository.save(shift)));
     }
 
     @PostMapping("/checkout")
     @PreAuthorize("hasRole('CLEANER')")
-    public ResponseEntity<Shift> checkOut(@RequestBody(required = false) Map<String, String> body,
+    public ResponseEntity<ShiftResponseDTO> checkOut(@RequestBody(required = false) Map<String, String> body,
                                           Authentication auth) {
         User cleaner = resolveUser(auth.getName());
-        Shift shift = shiftRepository.findFirstByCleanerAndCheckOutAtIsNullOrderByCheckInAtDesc(cleaner)
+        Shift shift = shiftRepository.findActiveByCleanerOrderByCheckInAtDesc(cleaner).stream()
+                .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Geen actieve shift gevonden. Check eerst in."));
 
         shift.setCheckOutAt(Instant.now());
         if (body != null && body.get("notes") != null) shift.setNotes(body.get("notes"));
+        Shift saved = shiftRepository.save(shift);
 
-        return ResponseEntity.ok(shiftRepository.save(shift));
+        return ResponseEntity.ok(new ShiftResponseDTO(
+                saved.getId(), cleaner.getUsername(), cleaner.getEmail(),
+                saved.getShiftDate(), saved.getCheckInAt(), saved.getCheckOutAt(), saved.getNotes()));
     }
 
     private User resolveUser(String email) {

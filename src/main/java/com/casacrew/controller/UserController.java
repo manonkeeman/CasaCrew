@@ -1,5 +1,6 @@
 package com.casacrew.controller;
 
+import com.casacrew.dto.HousemateDTO;
 import com.casacrew.dto.UserResponseDTO;
 import com.casacrew.dto.UserRequestDTO;
 import com.casacrew.service.UserService;
@@ -10,6 +11,10 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +22,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Path;
 
 import java.util.List;
 
@@ -161,6 +168,28 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserResponseDTO> me() {
         return ResponseEntity.ok(userService.getMe());
+    }
+
+    @PreAuthorize("hasAnyRole('STUDENT','CLEANER')")
+    @GetMapping("/housemates")
+    public ResponseEntity<List<HousemateDTO>> housemates() {
+        return ResponseEntity.ok(userService.listHousemates());
+    }
+
+    // Alleen admin, of de student zelf voor zijn eigen id -- de eigenlijke
+    // ownership-check gebeurt server-side in UserService.resolveContractPath,
+    // niet hier (nooit alleen op de @PreAuthorize-rol vertrouwen voor een
+    // per-record check).
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
+    @GetMapping("/{id}/contract")
+    public ResponseEntity<Resource> downloadContract(@PathVariable @Positive Long id) {
+        Path filePath = userService.resolveContractPath(id);
+        Resource resource = new FileSystemResource(filePath);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.inline().filename("contract.pdf").build().toString())
+                .body(resource);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

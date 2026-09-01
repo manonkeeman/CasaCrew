@@ -1,5 +1,6 @@
 package com.casacrew.service;
 
+import com.casacrew.dto.HousemateDTO;
 import com.casacrew.dto.UserRequestDTO;
 import com.casacrew.dto.UserResponseDTO;
 import com.casacrew.model.Invoice;
@@ -193,6 +194,31 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
+    public List<HousemateDTO> listHousemates() {
+        User me = currentUser();
+        return userRepository.findByOrganization_IdAndRole(me.getOrganization().getId(), User.Role.STUDENT)
+                .stream()
+                .filter(u -> !u.getId().equals(me.getId()))
+                .map(this::toHousemateDTO)
+                .toList();
+    }
+
+    private HousemateDTO toHousemateDTO(User user) {
+        String roomName = roomRepository.findByOccupant_Id(user.getId()).map(Room::getName).orElse(null);
+        return new HousemateDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getFullName(),
+                roomName,
+                user.getStudyOrWork(),
+                user.getFavoriteMeal(),
+                user.getSocialPreference() != null ? user.getSocialPreference().name() : null,
+                user.getAvailabilityStatus() != null ? user.getAvailabilityStatus().name() : null,
+                user.getProfileImagePath()
+        );
+    }
+
+    @Transactional(readOnly = true)
     public Optional<UserResponseDTO> getUserById(Long id) {
         Long organizationId = currentOrganizationId();
         return userRepository.findById(id)
@@ -364,6 +390,75 @@ public class UserService implements UserDetailsService {
         deleteFileQuietly(me.getProfileImagePath());
         me.setProfileImagePath(null);
         return toDTO(me);
+    }
+
+    /**
+     * Alleen ADMIN kan dit aanroepen (afgedwongen door SecurityConfig +
+     * @PreAuthorize op de admin-only controller-methode) -- geen
+     * ownership-check nodig hier, want deze methode wordt nooit door de
+     * student zelf bereikt.
+     */
+    public UserResponseDTO uploadContract(Long studentId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Bestand is verplicht");
+        }
+        String contentType = normalizeContentType(file.getContentType());
+        if (!"application/pdf".equals(contentType)) {
+            throw new IllegalArgumentException("Alleen PDF-bestanden zijn toegestaan");
+        }
+
+        User student = findUserByIdOrThrow(studentId);
+
+        try {
+            Files.createDirectories(uploadDir);
+
+            String filename = "contract_" + student.getId() + "_" + UUID.randomUUID() + ".pdf";
+            Path targetPath = uploadDir.resolve(filename).normalize();
+
+            if (!targetPath.startsWith(uploadDir)) {
+                throw new IllegalArgumentException("Invalid file path");
+            }
+
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            deleteFileQuietly(student.getContractFile());
+            student.setContractFile(filename);
+            return toDTO(student);
+        } catch (IOException exception) {
+            throw new RuntimeException("Failed to store contract", exception);
+        }
+    }
+
+    public UserResponseDTO deleteContract(Long studentId) {
+        User student = findUserByIdOrThrow(studentId);
+        deleteFileQuietly(student.getContractFile());
+        student.setContractFile(null);
+        return toDTO(student);
+    }
+
+    /**
+     * Geeft het pad naar het contract-PDF terug, NA verificatie dat de
+     * aanroeper óf admin is óf de eigenaar van dit account -- zelfde
+     * ownership-check als assertOwnerOrAdmin elders in deze service.
+     * Bewust geen los "isOwner"-argument vanuit de controller: de check
+     * gebeurt hier, server-side, tegen de echt ingelogde gebruiker.
+     */
+    @Transactional(readOnly = true)
+    public Path resolveContractPath(Long studentId) {
+        User student = findUserByIdOrThrow(studentId);
+        assertOwnerOrAdmin(student.getId());
+
+        if (!hasText(student.getContractFile())) {
+            throw new EntityNotFoundException("Geen contract gevonden voor deze gebruiker.");
+        }
+
+        Path filePath = uploadDir.resolve(student.getContractFile()).normalize();
+        if (!filePath.startsWith(uploadDir)) {
+            throw new IllegalArgumentException("Invalid file path");
+        }
+        return filePath;
     }
 
     public void deleteUser(Long id) {
@@ -567,7 +662,8 @@ public class UserService implements UserDetailsService {
                 user.isStatusToggle(),
                 user.getProfileImagePath(),
                 user.getContractFile(),
-                user.getRentAmount()
+                user.getRentAmount(),
+                user.getLeaseEndDate()
         );
     }
 }

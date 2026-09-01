@@ -13,6 +13,7 @@ export function LoginPage() {
 
   if (role === 'ROLE_ADMIN') return <Navigate to="/admin" replace />;
   if (role === 'ROLE_STUDENT') return <Navigate to="/student" replace />;
+  if (role === 'ROLE_CLEANER') return <Navigate to="/cleaner" replace />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -28,10 +29,10 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-sand px-4">
+      <div className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-8 shadow-sm shadow-stone-200/50">
         <h1 className="mb-1 text-xl font-bold text-emerald-700">CasaCrew</h1>
-        <p className="mb-6 text-sm text-slate-500">Log in op je dashboard</p>
+        <p className="mb-6 text-sm text-stone-500">Log in op je dashboard</p>
         {error && <Banner kind="error" message={error} />}
         <form onSubmit={handleSubmit}>
           <Field label="E-mailadres">

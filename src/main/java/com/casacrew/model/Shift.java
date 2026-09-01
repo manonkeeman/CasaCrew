@@ -1,5 +1,6 @@
 package com.casacrew.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -16,7 +17,7 @@ public class Shift {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cleaner_id", nullable = false)
-    @JsonIgnoreProperties({"password", "invoices", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({"password", "invoices", "organization", "hibernateLazyInitializer"})
     private User cleaner;
 
     @Column(name = "shift_date", nullable = false)
@@ -33,6 +34,7 @@ public class Shift {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
+    @JsonIgnore
     private Organization organization;
 
     public Long getId() { return id; }

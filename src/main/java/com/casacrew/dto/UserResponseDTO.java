@@ -1,6 +1,7 @@
 package com.casacrew.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record UserResponseDTO(
         Long id,
@@ -20,5 +21,6 @@ public record UserResponseDTO(
         boolean statusToggle,
         String profileImagePath,
         String contractFile,
-        BigDecimal rentAmount
+        BigDecimal rentAmount,
+        LocalDate leaseEndDate
 ) {}

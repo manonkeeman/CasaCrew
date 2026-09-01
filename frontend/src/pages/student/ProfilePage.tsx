@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, assetUrl } from '../../lib/apiClient';
+import { api, ApiError, assetUrl, downloadFile } from '../../lib/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import type { UserProfileUpdate, UserResponse } from '../../lib/types';
 import { Banner, Button, Card, Field, Input, Textarea } from '../../components/ui';
@@ -93,6 +93,24 @@ export function ProfilePage() {
           </div>
         </div>
       </Card>
+
+      <div className="mt-6">
+        <Card title="Mijn contract">
+          {user.contractFile ? (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-600">Je huurcontract staat klaar om in te zien.</p>
+              <Button
+                type="button"
+                onClick={() => downloadFile(`/api/users/${user.id}/contract`, `contract-${user.username}.pdf`)}
+              >
+                Download PDF
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400">Je beheerder heeft nog geen contract geüpload.</p>
+          )}
+        </Card>
+      </div>
 
       <div className="mt-6">
         <Card title="Gegevens">

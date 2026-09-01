@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError } from '../../lib/apiClient';
+import { api, ApiError, downloadFile } from '../../lib/apiClient';
 import type { Room, UserResponse } from '../../lib/types';
 import { Banner, Button, Card, Field, Input, Table } from '../../components/ui';
 
@@ -66,6 +66,18 @@ export function StudentsPage() {
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Kamer toewijzen mislukt.'),
   });
 
+  const uploadContractMutation = useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) => api.upload(`/api/admin/students/${id}/contract`, file),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    onError: (err) => setError(err instanceof ApiError ? err.message : 'Contract uploaden mislukt.'),
+  });
+
+  const deleteContractMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/api/admin/students/${id}/contract`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    onError: (err) => setError(err instanceof ApiError ? err.message : 'Contract verwijderen mislukt.'),
+  });
+
   function handleCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -127,66 +139,151 @@ export function StudentsPage() {
       )}
 
       <Card>
-        <Table head={['Naam', 'E-mail', 'Kamer', 'Huur', 'Telefoon', '']}>
-          {students.map((s) => (
-            <tr key={s.id}>
-              <td className="py-2 pr-4">{s.username}</td>
-              <td className="py-2 pr-4">{s.email}</td>
-              <td className="py-2 pr-4">
-                <select
-                  className="rounded border border-slate-200 px-2 py-1 text-xs"
-                  value={s.roomName ?? ''}
-                  onChange={(e) => {
-                    const room = (roomsQuery.data ?? []).find((r) => r.name === e.target.value);
-                    if (room) assignRoomMutation.mutate({ roomId: room.id, userId: s.id });
-                  }}
-                >
-                  <option value="">Geen kamer</option>
-                  {(roomsQuery.data ?? [])
-                    .filter((r) => !r.occupantId || r.name === s.roomName)
-                    .map((r) => (
-                      <option key={r.id} value={r.name}>{r.name}</option>
-                    ))}
-                </select>
-              </td>
-              <td className="py-2 pr-4">
-                {editingId === s.id ? (
-                  <input
-                    type="number"
-                    step="0.01"
-                    defaultValue={s.rentAmount ?? ''}
-                    className="w-24 rounded border border-slate-300 px-2 py-1 text-xs"
-                    onBlur={(e) => updateMutation.mutate({ id: s.id, body: { rentAmount: Number(e.target.value) } })}
-                    autoFocus
+        <Table head={['Naam', 'E-mail', 'Kamer', 'Huur', 'Contract t/m', 'Contract', 'Telefoon', '']}>
+          {students.map((s) => {
+            const daysLeft = s.leaseEndDate
+              ? Math.ceil((new Date(s.leaseEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+              : null;
+            const expiringSoon = daysLeft !== null && daysLeft <= 60;
+            return (
+              <tr key={s.id}>
+                <td className="py-2 pr-4">{s.username}</td>
+                <td className="py-2 pr-4">{s.email}</td>
+                <td className="py-2 pr-4">
+                  <select
+                    className="rounded border border-slate-200 px-2 py-1 text-xs"
+                    value={s.roomName ?? ''}
+                    onChange={(e) => {
+                      const room = (roomsQuery.data ?? []).find((r) => r.name === e.target.value);
+                      if (room) assignRoomMutation.mutate({ roomId: room.id, userId: s.id });
+                    }}
+                  >
+                    <option value="">Geen kamer</option>
+                    {(roomsQuery.data ?? [])
+                      .filter((r) => !r.occupantId || r.name === s.roomName)
+                      .map((r) => (
+                        <option key={r.id} value={r.name}>{r.name}</option>
+                      ))}
+                  </select>
+                </td>
+                <td className="py-2 pr-4">
+                  {editingId === s.id ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      defaultValue={s.rentAmount ?? ''}
+                      className="w-24 rounded border border-slate-300 px-2 py-1 text-xs"
+                      onBlur={(e) => updateMutation.mutate({ id: s.id, body: { rentAmount: Number(e.target.value) } })}
+                      autoFocus
+                    />
+                  ) : (
+                    <button className="text-xs text-emerald-700 underline" onClick={() => setEditingId(s.id)}>
+                      €{s.rentAmount ?? '-'}
+                    </button>
+                  )}
+                </td>
+                <td className="py-2 pr-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      defaultValue={s.leaseEndDate ?? ''}
+                      className="w-36 rounded border border-slate-300 px-2 py-1 text-xs"
+                      onBlur={(e) => updateMutation.mutate({ id: s.id, body: { leaseEndDate: e.target.value || null } })}
+                    />
+                    {expiringSoon && (
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        {daysLeft! < 0 ? 'verlopen' : `${daysLeft}d`}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="py-2 pr-4">
+                  <ContractCell
+                    student={s}
+                    onUpload={(file) => uploadContractMutation.mutate({ id: s.id, file })}
+                    onDelete={() => {
+                      if (confirm(`Contract van ${s.username} verwijderen?`)) deleteContractMutation.mutate(s.id);
+                    }}
+                    isUploading={uploadContractMutation.isPending}
                   />
-                ) : (
-                  <button className="text-xs text-emerald-700 underline" onClick={() => setEditingId(s.id)}>
-                    €{s.rentAmount ?? '-'}
+                </td>
+                <td className="py-2 pr-4">{s.phoneNumber ?? '-'}</td>
+                <td className="py-2 text-right">
+                  <button
+                    className="text-xs font-medium text-red-600 hover:underline"
+                    onClick={() => {
+                      if (confirm(`Weet je zeker dat je ${s.username} wilt verwijderen?`)) {
+                        deleteMutation.mutate(s.id);
+                      }
+                    }}
+                  >
+                    Verwijderen
                   </button>
-                )}
-              </td>
-              <td className="py-2 pr-4">{s.phoneNumber ?? '-'}</td>
-              <td className="py-2 text-right">
-                <button
-                  className="text-xs font-medium text-red-600 hover:underline"
-                  onClick={() => {
-                    if (confirm(`Weet je zeker dat je ${s.username} wilt verwijderen?`)) {
-                      deleteMutation.mutate(s.id);
-                    }
-                  }}
-                >
-                  Verwijderen
-                </button>
-              </td>
-            </tr>
-          ))}
+                </td>
+              </tr>
+            );
+          })}
           {students.length === 0 && (
             <tr>
-              <td colSpan={6} className="py-6 text-center text-slate-400">Nog geen studenten</td>
+              <td colSpan={8} className="py-6 text-center text-slate-400">Nog geen studenten</td>
             </tr>
           )}
         </Table>
       </Card>
+    </div>
+  );
+}
+
+function ContractCell({
+  student,
+  onUpload,
+  onDelete,
+  isUploading,
+}: {
+  student: UserResponse;
+  onUpload: (file: File) => void;
+  onDelete: () => void;
+  isUploading: boolean;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="flex items-center gap-3">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+          e.target.value = '';
+        }}
+      />
+      {student.contractFile ? (
+        <>
+          <button
+            className="text-xs font-medium text-emerald-700 hover:underline"
+            onClick={() => downloadFile(`/api/users/${student.id}/contract`, `contract-${student.username}.pdf`)}
+          >
+            Bekijk PDF
+          </button>
+          <button className="text-xs text-stone-500 hover:underline" onClick={() => fileInputRef.current?.click()}>
+            Vervangen
+          </button>
+          <button className="text-xs font-medium text-red-600 hover:underline" onClick={onDelete}>
+            Verwijderen
+          </button>
+        </>
+      ) : (
+        <button
+          className="text-xs font-medium text-emerald-700 hover:underline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+        >
+          {isUploading ? 'Bezig...' : 'Uploaden'}
+        </button>
+      )}
     </div>
   );
 }

@@ -109,6 +109,9 @@ public class User {
     @Column(name = "rent_amount", precision = 10, scale = 2)
     private java.math.BigDecimal rentAmount;
 
+    @Column(name = "lease_end_date")
+    private java.time.LocalDate leaseEndDate;
+
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
     private List<Invoice> invoices = new ArrayList<>();
 
@@ -216,6 +219,14 @@ public class User {
 
     public java.math.BigDecimal getRentAmount() {
         return rentAmount;
+    }
+
+    public java.time.LocalDate getLeaseEndDate() {
+        return leaseEndDate;
+    }
+
+    public void setLeaseEndDate(java.time.LocalDate leaseEndDate) {
+        this.leaseEndDate = leaseEndDate;
     }
 
     public String getEmail() {

@@ -58,6 +58,12 @@ public class Organization {
     @Column(name = "rent_due_day_of_month")
     private Integer rentDueDayOfMonth;
 
+    @Column(name = "complaints_policy", columnDefinition = "TEXT")
+    private String complaintsPolicy;
+
+    @Column(name = "deposit_return_policy", columnDefinition = "TEXT")
+    private String depositReturnPolicy;
+
     public Organization() {
     }
 
@@ -144,6 +150,22 @@ public class Organization {
 
     public void setRentDueDayOfMonth(Integer rentDueDayOfMonth) {
         this.rentDueDayOfMonth = rentDueDayOfMonth;
+    }
+
+    public String getComplaintsPolicy() {
+        return complaintsPolicy;
+    }
+
+    public void setComplaintsPolicy(String complaintsPolicy) {
+        this.complaintsPolicy = complaintsPolicy;
+    }
+
+    public String getDepositReturnPolicy() {
+        return depositReturnPolicy;
+    }
+
+    public void setDepositReturnPolicy(String depositReturnPolicy) {
+        this.depositReturnPolicy = depositReturnPolicy;
     }
 
     private String blankToNull(String value) {

@@ -49,7 +49,7 @@ public class AnnouncementController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'CLEANER')")
     public ResponseEntity<List<AnnouncementResponseDTO>> getAll() {
         List<AnnouncementResponseDTO> result = announcementRepository
                 .findByOrganization_IdOrderByCreatedAtDesc(userService.currentOrganizationId())
@@ -78,7 +78,7 @@ public class AnnouncementController {
     ) {}
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANER')")
     public ResponseEntity<AnnouncementResponseDTO> create(@Valid @RequestBody CreateRequest req) {
         Announcement ann = new Announcement();
         ann.setTitle(req.title() != null ? req.title().trim() : "");

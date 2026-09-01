@@ -1,5 +1,6 @@
 package com.casacrew.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
@@ -30,6 +31,7 @@ public class Huisregel {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
+    @JsonIgnore
     private Organization organization;
 
     public Long getId() { return id; }

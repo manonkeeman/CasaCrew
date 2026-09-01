@@ -22,19 +22,30 @@ public class OrganizationService {
 
     private static final Logger log = LoggerFactory.getLogger(OrganizationService.class);
 
+    private static final String DEFAULT_COMPLAINTS_POLICY =
+            "Klachten worden zo snel mogelijk in behandeling genomen, doorgaans binnen 5 werkdagen. "
+            + "Beschrijf de klacht zo concreet mogelijk: wat er gebeurde, waar en wanneer. "
+            + "Voor ernstige overlast of onveilige situaties: gebruik Noodgegevens, niet deze klachtenmodule.";
+
     private final OrganizationRepository organizationRepository;
     private final UserService userService;
     private final AuthSessionService authSessionService;
     private final EmailTemplateService emailTemplateService;
+    private final EmergencyContactService emergencyContactService;
+    private final WasteScheduleService wasteScheduleService;
 
     public OrganizationService(OrganizationRepository organizationRepository,
                                UserService userService,
                                AuthSessionService authSessionService,
-                               EmailTemplateService emailTemplateService) {
+                               EmailTemplateService emailTemplateService,
+                               EmergencyContactService emergencyContactService,
+                               WasteScheduleService wasteScheduleService) {
         this.organizationRepository = organizationRepository;
         this.userService = userService;
         this.authSessionService = authSessionService;
         this.emailTemplateService = emailTemplateService;
+        this.emergencyContactService = emergencyContactService;
+        this.wasteScheduleService = wasteScheduleService;
     }
 
     public LoginResponseDTO registerNewOrganization(OrganizationRegistrationRequestDTO request) {
@@ -43,6 +54,10 @@ public class OrganizationService {
         Organization organization = new Organization(organizationName, generateUniqueSlug(organizationName));
         organization = organizationRepository.save(organization);
         emailTemplateService.seedDefaultsForOrganization(organization);
+        emergencyContactService.seedDefaultsForOrganization(organization);
+        wasteScheduleService.seedDefaultsForOrganization(organization);
+        organization.setComplaintsPolicy(DEFAULT_COMPLAINTS_POLICY);
+        organizationRepository.save(organization);
 
         UserResponseDTO admin = userService.createFirstAdminForNewOrganization(
                 request.adminUsername().trim(),

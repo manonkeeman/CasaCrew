@@ -24,6 +24,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -227,10 +228,30 @@ public class AdminStudentController {
             String newName = body.get("username").toString().trim();
             if (!newName.isEmpty()) student.setUsername(newName);
         }
+        if (body.containsKey("leaseEndDate")) {
+            Object value = body.get("leaseEndDate");
+            student.setLeaseEndDate(value != null && !value.toString().isBlank() ? LocalDate.parse(value.toString()) : null);
+        }
 
         userRepository.save(student);
         log.info("Admin updated student id={}", id);
         return ResponseEntity.ok(userService.getUserById(id).orElseThrow());
+    }
+
+    @PostMapping(value = "/students/{id}/contract", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponseDTO> uploadContract(
+            @PathVariable @NotNull Long id,
+            @RequestPart("file") MultipartFile file) {
+        UserResponseDTO updated = userService.uploadContract(id, file);
+        log.info("Admin uploaded contract for student id={}", id);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/students/{id}/contract")
+    public ResponseEntity<UserResponseDTO> deleteContract(@PathVariable @NotNull Long id) {
+        UserResponseDTO updated = userService.deleteContract(id);
+        log.info("Admin deleted contract for student id={}", id);
+        return ResponseEntity.ok(updated);
     }
 
     private User findStudentInCurrentOrganization(Long id) {
