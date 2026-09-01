@@ -2,14 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api, ApiError } from '../../lib/apiClient';
 import { useAuth } from '../../context/AuthContext';
-import type { Announcement, CleaningTask, Shift } from '../../lib/types';
+import type { CleaningTask, Shift } from '../../lib/types';
 import { Banner, Button, Card, StatCard } from '../../components/ui';
-
-const ANNOUNCEMENT_TYPE_LABEL: Record<string, string> = {
-  mededeling: 'Mededeling',
-  onderhoud: 'Onderhoud',
-  evenement: 'Evenement',
-};
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -23,10 +17,6 @@ export function DashboardPage() {
   const shiftsQuery = useQuery({
     queryKey: ['my-shifts'],
     queryFn: () => api.get<Shift[]>('/api/shifts/me'),
-  });
-  const announcementsQuery = useQuery({
-    queryKey: ['announcements'],
-    queryFn: () => api.get<Announcement[]>('/api/announcements'),
   });
 
   const checkInMutation = useMutation({
@@ -45,10 +35,6 @@ export function DashboardPage() {
 
   const shifts = shiftsQuery.data ?? [];
   const activeShift = shifts.find((s) => s.checkInAt && !s.checkOutAt);
-
-  const recentAnnouncements = [...(announcementsQuery.data ?? [])]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
 
   return (
     <div>
@@ -79,20 +65,22 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <Card title="Laatste aankondigingen">
+      <Card title="Mijn openstaande taken">
         <div className="space-y-3">
-          {recentAnnouncements.map((a) => (
-            <div key={a.id} className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+          {openTasks.map((t) => (
+            <div key={t.id} className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
               <div>
-                <span className="mr-2 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                  {ANNOUNCEMENT_TYPE_LABEL[a.type] ?? a.type}
-                </span>
-                <span className="font-medium text-slate-800">{a.title}</span>
+                <p className="text-xs text-slate-400">Week {t.weekNumber}</p>
+                <p className="font-medium text-slate-800">{t.name}</p>
               </div>
-              <span className="shrink-0 text-xs text-slate-400">{new Date(a.createdAt).toLocaleDateString('nl-NL')}</span>
+              {t.deadline && (
+                <span className="shrink-0 text-xs text-slate-400">
+                  Deadline: {new Date(t.deadline).toLocaleDateString('nl-NL')}
+                </span>
+              )}
             </div>
           ))}
-          {recentAnnouncements.length === 0 && <p className="text-sm text-slate-400">Nog geen aankondigingen.</p>}
+          {openTasks.length === 0 && <p className="text-sm text-slate-400">Geen openstaande taken. Goed bezig!</p>}
         </div>
       </Card>
     </div>

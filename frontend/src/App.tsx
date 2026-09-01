@@ -33,10 +33,6 @@ import { HousematesPage } from './pages/student/HousematesPage';
 import { DashboardPage as CleanerDashboardPage } from './pages/cleaner/DashboardPage';
 import { CleanerTasksPage } from './pages/cleaner/TasksPage';
 import { ShiftsPage } from './pages/cleaner/ShiftsPage';
-import { CleanerHuisregelsPage } from './pages/cleaner/HuisregelsPage';
-import { NoodgegevensPage as CleanerNoodgegevensPage } from './pages/cleaner/NoodgegevensPage';
-import { WasteSchedulePage as CleanerWasteSchedulePage } from './pages/cleaner/WasteSchedulePage';
-import { CleanerAnnouncementsPage } from './pages/cleaner/AnnouncementsPage';
 import {
   BanknotesIcon,
   BedIcon,
@@ -98,13 +94,7 @@ const STUDENT_NAV = [
 const CLEANER_NAV = [
   { to: '/cleaner/dashboard', label: 'Dashboard', icon: HomeIcon },
   { to: '/cleaner/tasks', label: 'Mijn taken', icon: ClipboardCheckIcon },
-  { to: '/cleaner/waste-schedule', label: 'Afvalschema', icon: RecycleIcon },
   { to: '/cleaner/shifts', label: 'In/uitchecken', icon: ClockIcon },
-  { to: '/cleaner/announcements', label: 'Mededelingen', icon: MegaphoneIcon },
-  { to: '/cleaner/huisregels', label: 'Huisregels', icon: BookOpenIcon },
-  { to: '/cleaner/noodgegevens', label: 'Noodgegevens', icon: PhoneIcon },
-  { to: '/cleaner/maintenance', label: 'Onderhoud', icon: WrenchIcon },
-  { to: '/cleaner/calendar', label: 'Agenda', icon: CalendarPlusIcon },
 ];
 
 export default function App() {
@@ -159,13 +149,7 @@ export default function App() {
           <Route path="/cleaner" element={<Navigate to="/cleaner/dashboard" replace />} />
           <Route path="/cleaner/dashboard" element={<CleanerDashboardPage />} />
           <Route path="/cleaner/tasks" element={<CleanerTasksPage />} />
-          <Route path="/cleaner/waste-schedule" element={<CleanerWasteSchedulePage />} />
           <Route path="/cleaner/shifts" element={<ShiftsPage />} />
-          <Route path="/cleaner/announcements" element={<CleanerAnnouncementsPage />} />
-          <Route path="/cleaner/huisregels" element={<CleanerHuisregelsPage />} />
-          <Route path="/cleaner/noodgegevens" element={<CleanerNoodgegevensPage />} />
-          <Route path="/cleaner/maintenance" element={<MaintenanceReportPage />} />
-          <Route path="/cleaner/calendar" element={<CalendarPage />} />
         </Route>
       </Route>
 
