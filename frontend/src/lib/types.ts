@@ -221,3 +221,54 @@ export interface Shift {
   checkOutAt: string | null;
   notes: string | null;
 }
+
+export interface DocumentItem {
+  id: number;
+  title: string;
+  description: string | null;
+  roleAccess: string;
+  uploadedBy: string;
+  downloadUrl: string;
+}
+
+export interface UploadResponse {
+  documentId: number;
+  title: string;
+  downloadUrl: string;
+}
+
+export interface TaskPhoto {
+  id: number;
+  photoPath: string;
+  uploadedAt: string;
+  uploadedBy: { username: string } | null;
+}
+
+export type SupplyUrgency = 'LOW' | 'MEDIUM' | 'HIGH';
+export type SupplyStatus = 'PENDING' | 'ORDERED' | 'RECEIVED';
+
+export interface SupplyReport {
+  id: number;
+  itemName: string;
+  notes: string | null;
+  urgency: SupplyUrgency;
+  status: SupplyStatus;
+  reportedAt: string;
+  updatedAt: string;
+  reportedByUsername: string;
+  studentUsername: string | null;
+  studentEmail: string | null;
+}
+
+export type PaymentStatus = 'OPEN' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+
+export interface Payment {
+  id: number;
+  amount: number;
+  createdAt: string;
+  paidAt: string | null;
+  status: PaymentStatus;
+  description: string | null;
+  studentName: string;
+  studentEmail: string;
+}

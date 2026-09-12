@@ -39,12 +39,6 @@ public class CleaningTaskController {
         return ResponseEntity.ok(info);
     }
 
-    @GetMapping("/tasks/test-cleaner")
-    @PreAuthorize("hasRole('CLEANER')")
-    public ResponseEntity<String> cleanerAccessCheck() {
-        return ResponseEntity.ok("CLEANER OK");
-    }
-
     @GetMapping("/tasks/me")
     @PreAuthorize("hasAnyRole('ADMIN','STUDENT','CLEANER')")
     public ResponseEntity<List<CleaningTaskResponseDTO>> getMyTasks(Authentication authentication) {

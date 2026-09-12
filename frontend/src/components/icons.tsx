@@ -227,3 +227,45 @@ export function RecycleIcon(props: IconProps) {
     </>,
   );
 }
+
+export function DocumentIcon(props: IconProps) {
+  return base(
+    props,
+    <>
+      <path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M14 3v4h4" />
+      <path d="M9 13h6M9 16.5h6" />
+    </>,
+  );
+}
+
+export function BoxIcon(props: IconProps) {
+  return base(
+    props,
+    <>
+      <path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5z" />
+      <path d="M4 8.5 12 13l8-4.5" />
+      <path d="M12 13v7" />
+    </>,
+  );
+}
+
+export function CogIcon(props: IconProps) {
+  return base(
+    props,
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3.5v2M12 18.5v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3.5 12h2M18.5 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </>,
+  );
+}
+
+export function CameraIcon(props: IconProps) {
+  return base(
+    props,
+    <>
+      <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" />
+      <circle cx="12" cy="13" r="3.3" />
+    </>,
+  );
+}

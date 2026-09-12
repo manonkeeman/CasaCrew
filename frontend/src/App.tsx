@@ -19,11 +19,17 @@ import { ExpensesPage as AdminExpensesPage } from './pages/admin/ExpensesPage';
 import { InvoicesPage as AdminInvoicesPage } from './pages/admin/InvoicesPage';
 import { MaintenanceRequestsPage as AdminMaintenanceRequestsPage } from './pages/admin/MaintenanceRequestsPage';
 import { AnnouncementsAdminPage } from './pages/admin/AnnouncementsAdminPage';
+import { DocumentsPage as AdminDocumentsPage } from './pages/admin/DocumentsPage';
+import { PaymentsPage as AdminPaymentsPage } from './pages/admin/PaymentsPage';
+import { SupplyReportsPage as AdminSupplyReportsPage } from './pages/admin/SupplyReportsPage';
+import { JobsPage } from './pages/admin/JobsPage';
 import { MaintenanceReportPage } from './pages/shared/MaintenanceReportPage';
 import { CalendarPage } from './pages/shared/CalendarPage';
+import { DocumentsPage as SharedDocumentsPage } from './pages/shared/DocumentsPage';
 import { DashboardPage as StudentDashboardPage } from './pages/student/DashboardPage';
 import { ProfilePage } from './pages/student/ProfilePage';
 import { InvoicesPage } from './pages/student/InvoicesPage';
+import { PaymentsPage as StudentPaymentsPage } from './pages/student/PaymentsPage';
 import { AnnouncementsPage } from './pages/student/AnnouncementsPage';
 import { HuisregelsPage as StudentHuisregelsPage } from './pages/student/HuisregelsPage';
 import { NoodgegevensPage as StudentNoodgegevensPage } from './pages/student/NoodgegevensPage';
@@ -33,15 +39,19 @@ import { HousematesPage } from './pages/student/HousematesPage';
 import { DashboardPage as CleanerDashboardPage } from './pages/cleaner/DashboardPage';
 import { CleanerTasksPage } from './pages/cleaner/TasksPage';
 import { ShiftsPage } from './pages/cleaner/ShiftsPage';
+import { SupplyReportsPage as CleanerSupplyReportsPage } from './pages/cleaner/SupplyReportsPage';
 import {
   BanknotesIcon,
   BedIcon,
   BookOpenIcon,
+  BoxIcon,
   BuildingIcon,
   CalendarIcon,
   ClipboardCheckIcon,
   CalendarPlusIcon,
   ClockIcon,
+  CogIcon,
+  DocumentIcon,
   EuroIcon,
   ExclamationBubbleIcon,
   HomeIcon,
@@ -71,10 +81,14 @@ const ADMIN_NAV = [
   { to: '/admin/announcements', label: 'Aankondigingen', icon: MegaphoneIcon },
   { to: '/admin/organization', label: 'Huisprofiel', icon: BuildingIcon },
   { to: '/admin/invoices', label: 'Facturen', icon: ReceiptIcon },
+  { to: '/admin/payments', label: 'Betalingen', icon: BanknotesIcon },
   { to: '/admin/payment-settings', label: 'Betaalgegevens', icon: BanknotesIcon },
   { to: '/admin/expenses', label: 'Uitgaven', icon: EuroIcon },
   { to: '/admin/rent-settings', label: 'Huurregels', icon: CalendarIcon },
   { to: '/admin/email-templates', label: 'E-mailsjablonen', icon: MailIcon },
+  { to: '/admin/documents', label: 'Documenten', icon: DocumentIcon },
+  { to: '/admin/supply-reports', label: 'Voorraadmeldingen', icon: BoxIcon },
+  { to: '/admin/jobs', label: 'Systeemtaken', icon: CogIcon },
 ];
 
 const STUDENT_NAV = [
@@ -82,6 +96,7 @@ const STUDENT_NAV = [
   { to: '/student/housemates', label: 'Huisgenoten', icon: UsersIcon },
   { to: '/student/profile', label: 'Mijn profiel', icon: UserIcon },
   { to: '/student/invoices', label: 'Mijn facturen', icon: BanknotesIcon },
+  { to: '/student/payments', label: 'Mijn betalingen', icon: ReceiptIcon },
   { to: '/student/announcements', label: 'Mededelingen', icon: MegaphoneIcon },
   { to: '/student/huisregels', label: 'Huisregels', icon: BookOpenIcon },
   { to: '/student/noodgegevens', label: 'Noodgegevens', icon: PhoneIcon },
@@ -89,12 +104,15 @@ const STUDENT_NAV = [
   { to: '/student/complaints', label: 'Klachten', icon: ExclamationBubbleIcon },
   { to: '/student/maintenance', label: 'Onderhoud', icon: WrenchIcon },
   { to: '/student/calendar', label: 'Agenda', icon: CalendarPlusIcon },
+  { to: '/student/documents', label: 'Documenten', icon: DocumentIcon },
 ];
 
 const CLEANER_NAV = [
   { to: '/cleaner/dashboard', label: 'Dashboard', icon: HomeIcon },
   { to: '/cleaner/tasks', label: 'Mijn taken', icon: ClipboardCheckIcon },
   { to: '/cleaner/shifts', label: 'In/uitchecken', icon: ClockIcon },
+  { to: '/cleaner/supply-reports', label: 'Voorraadmeldingen', icon: BoxIcon },
+  { to: '/cleaner/documents', label: 'Documenten', icon: DocumentIcon },
 ];
 
 export default function App() {
@@ -120,10 +138,14 @@ export default function App() {
           <Route path="/admin/announcements" element={<AnnouncementsAdminPage />} />
           <Route path="/admin/organization" element={<OrganizationProfilePage />} />
           <Route path="/admin/invoices" element={<AdminInvoicesPage />} />
+          <Route path="/admin/payments" element={<AdminPaymentsPage />} />
           <Route path="/admin/payment-settings" element={<PaymentSettingsPage />} />
           <Route path="/admin/expenses" element={<AdminExpensesPage />} />
           <Route path="/admin/rent-settings" element={<RentSettingsPage />} />
           <Route path="/admin/email-templates" element={<EmailTemplatesPage />} />
+          <Route path="/admin/documents" element={<AdminDocumentsPage />} />
+          <Route path="/admin/supply-reports" element={<AdminSupplyReportsPage />} />
+          <Route path="/admin/jobs" element={<JobsPage />} />
         </Route>
       </Route>
 
@@ -134,6 +156,7 @@ export default function App() {
           <Route path="/student/housemates" element={<HousematesPage />} />
           <Route path="/student/profile" element={<ProfilePage />} />
           <Route path="/student/invoices" element={<InvoicesPage />} />
+          <Route path="/student/payments" element={<StudentPaymentsPage />} />
           <Route path="/student/announcements" element={<AnnouncementsPage />} />
           <Route path="/student/huisregels" element={<StudentHuisregelsPage />} />
           <Route path="/student/noodgegevens" element={<StudentNoodgegevensPage />} />
@@ -141,6 +164,7 @@ export default function App() {
           <Route path="/student/complaints" element={<StudentComplaintsPage />} />
           <Route path="/student/maintenance" element={<MaintenanceReportPage />} />
           <Route path="/student/calendar" element={<CalendarPage />} />
+          <Route path="/student/documents" element={<SharedDocumentsPage />} />
         </Route>
       </Route>
 
@@ -150,6 +174,8 @@ export default function App() {
           <Route path="/cleaner/dashboard" element={<CleanerDashboardPage />} />
           <Route path="/cleaner/tasks" element={<CleanerTasksPage />} />
           <Route path="/cleaner/shifts" element={<ShiftsPage />} />
+          <Route path="/cleaner/supply-reports" element={<CleanerSupplyReportsPage />} />
+          <Route path="/cleaner/documents" element={<SharedDocumentsPage />} />
         </Route>
       </Route>
 

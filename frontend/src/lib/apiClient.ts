@@ -75,9 +75,14 @@ export const api = {
     request<T>(path, { method: 'PATCH', body: body !== undefined ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'DELETE', body: body !== undefined ? JSON.stringify(body) : undefined }),
-  upload: <T>(path: string, file: File) => {
+  upload: <T>(path: string, file: File, fieldName = 'file', extraFields?: Record<string, string>) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append(fieldName, file);
+    if (extraFields) {
+      for (const [key, value] of Object.entries(extraFields)) {
+        formData.append(key, value);
+      }
+    }
     return request<T>(path, { method: 'POST', body: formData });
   },
 };

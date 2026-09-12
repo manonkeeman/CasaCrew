@@ -121,3 +121,9 @@ vapid:
 firebase:
   service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+

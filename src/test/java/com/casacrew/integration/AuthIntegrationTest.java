@@ -1,7 +1,9 @@
 package com.casacrew.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.casacrew.model.Organization;
 import com.casacrew.model.User;
+import com.casacrew.repository.OrganizationRepository;
 import com.casacrew.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     private String adminPassword;
@@ -27,6 +32,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @BeforeEach
     void setup() {
         userRepository.deleteAll();
+
+        Organization organization = organizationRepository.findBySlugIgnoreCase("casacrew")
+                .orElseGet(() -> organizationRepository.save(new Organization("CasaCrew", "casacrew-" + UUID.randomUUID())));
 
         adminPassword = UUID.randomUUID().toString();
 
@@ -36,6 +44,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 passwordEncoder.encode(adminPassword),
                 User.Role.ADMIN
         );
+        admin.setOrganization(organization);
 
         userRepository.save(admin);
     }

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../../lib/apiClient';
 import type { CleaningTask } from '../../lib/types';
 import { Banner, Card, Textarea, Button } from '../../components/ui';
+import { TaskPhotosSection } from '../../components/TaskPhotos';
 
 export function CleanerTasksPage() {
   const queryClient = useQueryClient();
@@ -116,6 +117,8 @@ export function CleanerTasksPage() {
                 </button>
               )}
             </div>
+
+            <TaskPhotosSection taskId={t.id} canDelete={false} />
           </Card>
         ))}
         {tasks.length === 0 && <p className="text-sm text-slate-400">Je hebt nog geen schoonmaaktaken toegewezen gekregen.</p>}

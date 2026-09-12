@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../../lib/apiClient';
 import type { CleaningScheduleInfo, CleaningTask, UserResponse } from '../../lib/types';
 import { Banner, Button, Card, Field, Input, Table, Textarea } from '../../components/ui';
+import { TaskPhotosSection } from '../../components/TaskPhotos';
 
 interface CreateTaskPayload {
   weekNumber: number;
@@ -151,6 +152,7 @@ export function CleaningSchedulePage() {
                 {t.description && <p className="text-xs text-slate-500">{t.description}</p>}
                 {t.incidentReport && <p className="mt-1 text-xs text-red-600">Incident: {t.incidentReport}</p>}
                 {t.comment && <p className="mt-1 text-xs text-slate-400">Opmerking: {t.comment}</p>}
+                <TaskPhotosSection taskId={t.id} canDelete />
               </td>
               <td className="py-2 pr-4">{t.assignedTo ?? '-'}</td>
               <td className="py-2 pr-4">{t.deadline ? new Date(t.deadline).toLocaleDateString('nl-NL') : '-'}</td>

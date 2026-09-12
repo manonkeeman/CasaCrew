@@ -59,7 +59,9 @@ public class PasswordResetService {
         String token = generateToken64Hex();
         Instant expiresAt = Instant.now().plus(resetExpiryMinutes, ChronoUnit.MINUTES);
 
-        tokenRepository.save(new PasswordResetToken(token, user, expiresAt));
+        PasswordResetToken resetToken = new PasswordResetToken(token, user, expiresAt);
+        resetToken.setOrganization(user.getOrganization());
+        tokenRepository.save(resetToken);
 
         String resetLink = frontendUrl + "/reset-password?token=" + token;
         mailService.sendPasswordResetMail(user.getEmail(), resetLink);

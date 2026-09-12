@@ -114,7 +114,10 @@ public class SecurityConfig {
                                 "/actuator/healthz",
                                 "/actuator/info",
                                 "/error",
-                                "/uploads/**"
+                                "/uploads/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyRole(USER_ROLES)
                         .requestMatchers(HttpMethod.PUT, "/api/users/me/profile").hasAnyRole(USER_ROLES)

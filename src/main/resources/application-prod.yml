@@ -4,3 +4,9 @@ spring:
       ddl-auto: validate
   main:
     lazy-initialization: true
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -3,7 +3,7 @@
 REST API voor CasaCrew, een multi-tenant SaaS voor het beheer van verhuurpanden (bewoners, facturen, schoonmaak, documenten en meer).
 Gebouwd met **Spring Boot 3** en **Java 21**.
 
-De volledige API-documentatie (alle endpoints, request bodies en voorbeeldresponses) is beschikbaar als **Postman collection** in de map `docs/`.
+De volledige API-documentatie (alle endpoints, request- en responsemodellen) wordt automatisch gegenereerd via **springdoc-openapi** en is bij het lokaal draaien beschikbaar op `http://localhost:8080/swagger-ui.html` (raw OpenAPI-schema op `/v3/api-docs`). In productie staat dit uit (zie `application-prod.yml`).
 
 ---
 

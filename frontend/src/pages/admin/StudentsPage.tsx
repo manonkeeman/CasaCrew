@@ -13,6 +13,13 @@ interface CreateStudentPayload {
   sendWelcomeEmail: boolean;
 }
 
+const REMINDER_TEMPLATE_LABEL: Record<string, string> = {
+  PAYMENT_NEW: 'Nieuwe factuur',
+  PAYMENT_REMINDER_1: 'Eerste herinnering',
+  PAYMENT_REMINDER_2: 'Tweede herinnering',
+  OVERDUE: 'Vervallen',
+};
+
 export function StudentsPage() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +85,17 @@ export function StudentsPage() {
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Contract verwijderen mislukt.'),
   });
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const sendReminderMutation = useMutation({
+    mutationFn: ({ userId, templateType }: { userId: number; templateType: string }) =>
+      api.post<{ message: string }>('/api/admin/email/send', { userId, templateType }),
+    onSuccess: (data) => {
+      setError(null);
+      setSuccessMessage(data.message);
+    },
+    onError: (err) => setError(err instanceof ApiError ? err.message : 'Herinnering versturen mislukt.'),
+  });
+
   function handleCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -100,6 +118,7 @@ export function StudentsPage() {
       </div>
 
       {error && <Banner kind="error" message={error} />}
+      {successMessage && <Banner kind="success" message={successMessage} />}
 
       {showForm && (
         <Card title="Nieuwe student toevoegen">
@@ -139,7 +158,7 @@ export function StudentsPage() {
       )}
 
       <Card>
-        <Table head={['Naam', 'E-mail', 'Kamer', 'Huur', 'Contract t/m', 'Contract', 'Telefoon', '']}>
+        <Table head={['Naam', 'E-mail', 'Kamer', 'Huur', 'Contract t/m', 'Contract', 'Telefoon', 'Herinnering', '']}>
           {students.map((s) => {
             const daysLeft = s.leaseEndDate
               ? Math.ceil((new Date(s.leaseEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -208,6 +227,12 @@ export function StudentsPage() {
                   />
                 </td>
                 <td className="py-2 pr-4">{s.phoneNumber ?? '-'}</td>
+                <td className="py-2 pr-4">
+                  <ReminderCell
+                    onSend={(templateType) => sendReminderMutation.mutate({ userId: s.id, templateType })}
+                    isSending={sendReminderMutation.isPending}
+                  />
+                </td>
                 <td className="py-2 text-right">
                   <button
                     className="text-xs font-medium text-red-600 hover:underline"
@@ -225,7 +250,7 @@ export function StudentsPage() {
           })}
           {students.length === 0 && (
             <tr>
-              <td colSpan={8} className="py-6 text-center text-slate-400">Nog geen studenten</td>
+              <td colSpan={9} className="py-6 text-center text-slate-400">Nog geen studenten</td>
             </tr>
           )}
         </Table>
@@ -284,6 +309,31 @@ function ContractCell({
           {isUploading ? 'Bezig...' : 'Uploaden'}
         </button>
       )}
+    </div>
+  );
+}
+
+function ReminderCell({ onSend, isSending }: { onSend: (templateType: string) => void; isSending: boolean }) {
+  const [templateType, setTemplateType] = useState('PAYMENT_REMINDER_1');
+
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        className="rounded border border-slate-300 px-2 py-1 text-xs"
+        value={templateType}
+        onChange={(e) => setTemplateType(e.target.value)}
+      >
+        {Object.entries(REMINDER_TEMPLATE_LABEL).map(([value, label]) => (
+          <option key={value} value={value}>{label}</option>
+        ))}
+      </select>
+      <button
+        className="text-xs font-medium text-emerald-700 hover:underline disabled:text-emerald-300"
+        disabled={isSending}
+        onClick={() => onSend(templateType)}
+      >
+        Versturen
+      </button>
     </div>
   );
 }
