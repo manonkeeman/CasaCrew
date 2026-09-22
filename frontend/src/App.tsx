@@ -1,6 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
+import { MarketingLayout } from './layouts/MarketingLayout';
+import { HomePage } from './pages/marketing/HomePage';
+import { FeaturesPricingPage } from './pages/marketing/FeaturesPricingPage';
+import { AboutPage } from './pages/marketing/AboutPage';
+import { ContactPage } from './pages/marketing/ContactPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SetupWizardPage } from './pages/admin/SetupWizardPage';
@@ -121,7 +126,12 @@ const CLEANER_NAV = [
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route element={<MarketingLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/functies" element={<FeaturesPricingPage />} />
+        <Route path="/over-ons" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+      </Route>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
@@ -184,7 +194,7 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

@@ -269,3 +269,10 @@ export function CameraIcon(props: IconProps) {
     </>,
   );
 }
+
+export function CheckIcon(props: IconProps) {
+  return base(
+    props,
+    <path d="M4.5 12.5 9 17l10.5-10.5" />,
+  );
+}

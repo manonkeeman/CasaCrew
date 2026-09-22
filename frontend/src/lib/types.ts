@@ -31,6 +31,12 @@ export interface LoginResponse {
   user: UserResponse;
 }
 
+export interface ContactRequest {
+  name: string;
+  email: string;
+  message: string;
+}
+
 export interface OrganizationRegistrationRequest {
   organizationName: string;
   adminUsername: string;

@@ -97,6 +97,8 @@ app:
     from: ${MAIL_FROM:${MAIL_USERNAME:no-reply@casacrew.nl}}
     bcc:
       admin: ${MAIL_BCC_ADMIN:}
+  contact:
+    to-email: ${CONTACT_EMAIL_TO:info@casacrew.nl}
   rent:
     amount: ${RENT_AMOUNT:350.00}
   password-reset:

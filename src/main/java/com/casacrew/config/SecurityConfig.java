@@ -107,7 +107,8 @@ public class SecurityConfig {
                                 "/api/auth/google-login",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
-                                "/api/organizations"
+                                "/api/organizations",
+                                "/api/contact"
                         ).permitAll()
                         .requestMatchers(
                                 "/actuator/health",
