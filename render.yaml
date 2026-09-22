@@ -1,8 +1,8 @@
 databases:
   - name: casacrew-db
-    plan: free
-    databaseName: casacrew
-    user: casacrew
+    plan: 0.1c-256mb
+    databaseName: casacrew_db
+    user: casacrew_db_user
 
 services:
   - type: web
