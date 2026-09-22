@@ -23,4 +23,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     Optional<Room> findByOrganization_IdAndNameIgnoreCase(Long organizationId, String name);
 
     List<Room> findByOrganization_IdAndOccupantIsNullOrderByNameAsc(Long organizationId);
+
+    boolean existsByOrganization_Id(Long organizationId);
 }

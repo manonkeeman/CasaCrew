@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { SetupWizardPage } from './pages/admin/SetupWizardPage';
 import { DashboardPage as AdminDashboardPage } from './pages/admin/DashboardPage';
 import { StudentsPage } from './pages/admin/StudentsPage';
 import { RoomsPage } from './pages/admin/RoomsPage';
@@ -67,6 +69,7 @@ import {
 } from './components/icons';
 
 const ADMIN_NAV = [
+  { to: '/admin/setup', label: 'Setup-wizard', icon: ClipboardCheckIcon },
   { to: '/admin/dashboard', label: 'Dashboard', icon: HomeIcon },
   { to: '/admin/students', label: 'Studenten', icon: UsersIcon },
   { to: '/admin/rooms', label: 'Kamers', icon: BedIcon },
@@ -120,8 +123,10 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       <Route element={<ProtectedRoute allow={['ROLE_ADMIN']} />}>
+        <Route path="/admin/setup" element={<SetupWizardPage />} />
         <Route element={<DashboardLayout title="Beheer" navItems={ADMIN_NAV} />}>
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ApiError } from '../lib/apiClient';
 import { Banner, Button, Field, Input } from '../components/ui';
@@ -51,6 +51,12 @@ export function LoginPage() {
             {isSubmitting ? 'Bezig...' : 'Inloggen'}
           </Button>
         </form>
+        <p className="mt-4 text-center text-sm text-stone-500">
+          Nog geen account?{' '}
+          <Link to="/register" className="font-medium text-emerald-700 hover:underline">
+            Richt je huis in
+          </Link>
+        </p>
       </div>
     </div>
   );

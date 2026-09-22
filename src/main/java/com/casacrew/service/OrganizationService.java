@@ -1,13 +1,18 @@
 package com.casacrew.service;
 
 import com.casacrew.dto.LoginResponseDTO;
+import com.casacrew.dto.OnboardingStatusDTO;
 import com.casacrew.dto.OrganizationPaymentSettingsDTO;
 import com.casacrew.dto.OrganizationProfileDTO;
 import com.casacrew.dto.OrganizationRegistrationRequestDTO;
 import com.casacrew.dto.OrganizationRentSettingsDTO;
 import com.casacrew.dto.UserResponseDTO;
 import com.casacrew.model.Organization;
+import com.casacrew.model.User;
+import com.casacrew.repository.HuisregelRepository;
 import com.casacrew.repository.OrganizationRepository;
+import com.casacrew.repository.RoomRepository;
+import com.casacrew.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,19 +38,28 @@ public class OrganizationService {
     private final EmailTemplateService emailTemplateService;
     private final EmergencyContactService emergencyContactService;
     private final WasteScheduleService wasteScheduleService;
+    private final RoomRepository roomRepository;
+    private final HuisregelRepository huisregelRepository;
+    private final UserRepository userRepository;
 
     public OrganizationService(OrganizationRepository organizationRepository,
                                UserService userService,
                                AuthSessionService authSessionService,
                                EmailTemplateService emailTemplateService,
                                EmergencyContactService emergencyContactService,
-                               WasteScheduleService wasteScheduleService) {
+                               WasteScheduleService wasteScheduleService,
+                               RoomRepository roomRepository,
+                               HuisregelRepository huisregelRepository,
+                               UserRepository userRepository) {
         this.organizationRepository = organizationRepository;
         this.userService = userService;
         this.authSessionService = authSessionService;
         this.emailTemplateService = emailTemplateService;
         this.emergencyContactService = emergencyContactService;
         this.wasteScheduleService = wasteScheduleService;
+        this.roomRepository = roomRepository;
+        this.huisregelRepository = huisregelRepository;
+        this.userRepository = userRepository;
     }
 
     public LoginResponseDTO registerNewOrganization(OrganizationRegistrationRequestDTO request) {
@@ -154,6 +168,35 @@ public class OrganizationService {
         log.info("Huurinstellingen bijgewerkt (organizationId={})", organization.getId());
 
         return toRentSettingsDTO(organization);
+    }
+
+    public OnboardingStatusDTO getOnboardingStatus() {
+        Organization organization = currentOrganization();
+        Long organizationId = organization.getId();
+
+        boolean profileComplete = isNotBlank(organization.getName()) && isNotBlank(organization.getAddress());
+        boolean roomsComplete = roomRepository.existsByOrganization_Id(organizationId);
+        boolean rentSettingsComplete = organization.getDefaultRentAmount() != null
+                && organization.getRentInvoiceDayOfMonth() != null
+                && organization.getRentDueDayOfMonth() != null;
+        boolean paymentSettingsComplete = isNotBlank(organization.getIban()) && isNotBlank(organization.getAccountHolderName());
+        boolean huisregelsComplete = huisregelRepository.existsByOrganization_Id(organizationId);
+        boolean studentsComplete = userRepository.existsByOrganization_IdAndRole(organizationId, User.Role.STUDENT);
+        boolean cleanerComplete = userRepository.existsByOrganization_IdAndRole(organizationId, User.Role.CLEANER);
+
+        return OnboardingStatusDTO.of(
+                profileComplete,
+                roomsComplete,
+                rentSettingsComplete,
+                paymentSettingsComplete,
+                huisregelsComplete,
+                studentsComplete,
+                cleanerComplete
+        );
+    }
+
+    private boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
     }
 
     private OrganizationProfileDTO toProfileDTO(Organization organization) {

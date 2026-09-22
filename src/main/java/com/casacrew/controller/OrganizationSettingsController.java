@@ -1,5 +1,6 @@
 package com.casacrew.controller;
 
+import com.casacrew.dto.OnboardingStatusDTO;
 import com.casacrew.dto.OrganizationPaymentSettingsDTO;
 import com.casacrew.dto.OrganizationProfileDTO;
 import com.casacrew.dto.OrganizationRentSettingsDTO;
@@ -53,5 +54,10 @@ public class OrganizationSettingsController {
     @PutMapping(value = "/rent-settings", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OrganizationRentSettingsDTO> updateRentSettings(@Valid @RequestBody OrganizationRentSettingsDTO request) {
         return ResponseEntity.ok(organizationService.updateRentSettings(request));
+    }
+
+    @GetMapping("/onboarding-status")
+    public ResponseEntity<OnboardingStatusDTO> getOnboardingStatus() {
+        return ResponseEntity.ok(organizationService.getOnboardingStatus());
     }
 }

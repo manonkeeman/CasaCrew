@@ -27,4 +27,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByOrganization_IdAndRole(Long organizationId, User.Role role);
 
     boolean existsByOrganization_IdAndUsernameIgnoreCase(Long organizationId, String username);
+
+    boolean existsByOrganization_IdAndRole(Long organizationId, User.Role role);
 }

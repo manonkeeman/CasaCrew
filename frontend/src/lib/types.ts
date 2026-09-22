@@ -31,6 +31,25 @@ export interface LoginResponse {
   user: UserResponse;
 }
 
+export interface OrganizationRegistrationRequest {
+  organizationName: string;
+  adminUsername: string;
+  adminEmail: string;
+  adminPassword: string;
+}
+
+export interface OnboardingStatus {
+  profileComplete: boolean;
+  roomsComplete: boolean;
+  rentSettingsComplete: boolean;
+  paymentSettingsComplete: boolean;
+  huisregelsComplete: boolean;
+  studentsComplete: boolean;
+  cleanerComplete: boolean;
+  completedSteps: number;
+  totalSteps: number;
+}
+
 export interface UserProfileUpdate {
   username?: string;
   fullName?: string;

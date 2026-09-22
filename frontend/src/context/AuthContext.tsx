@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api, getToken, setToken } from '../lib/apiClient';
-import type { LoginResponse, Role, UserResponse } from '../lib/types';
+import type { LoginResponse, OrganizationRegistrationRequest, Role, UserResponse } from '../lib/types';
 
 interface AuthState {
   user: UserResponse | null;
   role: Role | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (payload: OrganizationRegistrationRequest) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -40,12 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  async function login(email: string, password: string) {
-    const response = await api.post<LoginResponse>('/api/auth/login', { email, password });
+  function applySession(response: LoginResponse) {
     setToken(response.token);
     localStorage.setItem('casacrew_role', response.role);
     setRole(response.role);
     setUser(response.user);
+  }
+
+  async function login(email: string, password: string) {
+    const response = await api.post<LoginResponse>('/api/auth/login', { email, password });
+    applySession(response);
+  }
+
+  async function register(payload: OrganizationRegistrationRequest) {
+    const response = await api.post<LoginResponse>('/api/organizations', payload);
+    applySession(response);
   }
 
   function logout() {
@@ -57,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, role, isLoading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, role, isLoading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
