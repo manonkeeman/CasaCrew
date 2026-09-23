@@ -7,6 +7,7 @@ import {
   UsersIcon,
   WrenchIcon,
 } from '../../components/icons';
+import { BrowserFrame } from '../../components/BrowserFrame';
 
 const FEATURES = [
   {
@@ -84,6 +85,14 @@ export function HomePage() {
             Bekijk functies
           </Link>
         </div>
+
+        <div className="mx-auto mt-14 max-w-4xl">
+          <BrowserFrame
+            src="/images/dashboard-preview.png"
+            alt="CasaCrew beheerdersdashboard met studenten, kamers en openstaande facturen"
+            url="casacrew.nl/admin/dashboard"
+          />
+        </div>
       </section>
 
       <section className="border-y border-stone-200 bg-white py-16">
@@ -104,17 +113,49 @@ export function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="text-center text-2xl font-bold text-stone-900">Zo werkt het</h2>
-        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
-          {STEPS.map((item) => (
-            <div key={item.step} className="text-center">
-              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
-                {item.step}
-              </span>
-              <h3 className="mt-4 font-semibold text-stone-800">{item.title}</h3>
-              <p className="mt-1.5 text-sm text-stone-500">{item.description}</p>
+        <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
+          <div>
+            <h2 className="text-2xl font-bold text-stone-900">
+              Studenten en kamers in één overzicht
+            </h2>
+            <p className="mt-3 text-stone-600">
+              Zie in één oogopslag wie waar woont, welke huur nog openstaat en waar contracten
+              bijna aflopen — zonder losse spreadsheets bij te houden.
+            </p>
+          </div>
+          <BrowserFrame
+            src="/images/students-preview.png"
+            alt="Overzicht van studenten met kamer, huurbedrag en contract"
+            url="casacrew.nl/admin/students"
+          />
+        </div>
+      </section>
+
+      <section className="border-y border-stone-200 bg-white py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
+            <BrowserFrame
+              src="/images/wizard-preview.png"
+              alt="Setup-wizard voor het inrichten van een nieuw huis"
+              url="casacrew.nl/admin/setup"
+            />
+            <div>
+              <h2 className="text-2xl font-bold text-stone-900">Zo werkt het</h2>
+              <div className="mt-6 space-y-6">
+                {STEPS.map((item) => (
+                  <div key={item.step} className="flex gap-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
+                      {item.step}
+                    </span>
+                    <div>
+                      <h3 className="font-semibold text-stone-800">{item.title}</h3>
+                      <p className="mt-1 text-sm text-stone-500">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
