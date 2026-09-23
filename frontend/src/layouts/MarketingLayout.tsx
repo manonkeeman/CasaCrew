@@ -87,12 +87,14 @@ export function MarketingLayout() {
                 <ul className="mt-2 space-y-1.5 text-sm text-stone-600">
                   <li><Link to="/over-ons" className="hover:text-emerald-700">Over ons</Link></li>
                   <li><Link to="/contact" className="hover:text-emerald-700">Contact</Link></li>
+                  <li><Link to="/privacy" className="hover:text-emerald-700">Privacy</Link></li>
                 </ul>
               </div>
             </div>
           </div>
           <p className="mt-8 text-xs text-stone-400">
-            &copy; {new Date().getFullYear()} CasaCrew. Alle rechten voorbehouden.
+            &copy; {new Date().getFullYear()} CasaCrew. Alle rechten voorbehouden. ·{' '}
+            <Link to="/privacy" className="hover:text-emerald-700">Privacyverklaring</Link>
           </p>
         </div>
       </footer>

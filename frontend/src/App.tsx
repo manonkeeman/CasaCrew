@@ -6,6 +6,7 @@ import { HomePage } from './pages/marketing/HomePage';
 import { FeaturesPricingPage } from './pages/marketing/FeaturesPricingPage';
 import { AboutPage } from './pages/marketing/AboutPage';
 import { ContactPage } from './pages/marketing/ContactPage';
+import { PrivacyPage } from './pages/marketing/PrivacyPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SetupWizardPage } from './pages/admin/SetupWizardPage';
@@ -131,6 +132,7 @@ export default function App() {
         <Route path="/functies" element={<FeaturesPricingPage />} />
         <Route path="/over-ons" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
       </Route>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
