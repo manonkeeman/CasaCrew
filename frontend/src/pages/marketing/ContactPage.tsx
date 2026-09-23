@@ -3,6 +3,8 @@ import { useMutation } from '@tanstack/react-query';
 import { api, ApiError } from '../../lib/apiClient';
 import type { ContactRequest } from '../../lib/types';
 import { Banner, Button, Field, Input, Textarea } from '../../components/ui';
+import { GradientBlobs } from '../../components/decor/GradientBlobs';
+import { HouseIllustration } from '../../components/illustrations/HouseIllustration';
 
 export function ContactPage() {
   const [success, setSuccess] = useState(false);
@@ -38,12 +40,15 @@ export function ContactPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Contact</h1>
-        <p className="mx-auto mt-4 max-w-xl text-stone-600">
-          Vragen over CasaCrew of benieuwd of het bij jouw huis past? Stuur een bericht, we reageren
-          zo snel mogelijk.
-        </p>
+      <div className="relative isolate overflow-hidden">
+        <GradientBlobs />
+        <div className="py-6 text-center">
+          <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Contact</h1>
+          <p className="mx-auto mt-4 max-w-xl text-stone-600">
+            Vragen over CasaCrew of benieuwd of het bij jouw huis past? Stuur een bericht, we
+            reageren zo snel mogelijk.
+          </p>
+        </div>
       </div>
 
       <div className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-5">
@@ -80,7 +85,8 @@ export function ContactPage() {
         </div>
 
         <div className="md:col-span-2">
-          <h2 className="font-semibold text-stone-800">Direct contact</h2>
+          <HouseIllustration className="h-28 w-28 text-emerald-600" />
+          <h2 className="mt-4 font-semibold text-stone-800">Direct contact</h2>
           <p className="mt-2 text-sm text-stone-600">
             <a href="mailto:info@casacrew.nl" className="text-emerald-700 hover:underline">
               info@casacrew.nl

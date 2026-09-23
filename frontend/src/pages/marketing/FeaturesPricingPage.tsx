@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { CheckIcon } from '../../components/icons';
+import { BanknotesIcon, CheckIcon, MegaphoneIcon, SparklesIcon, UsersIcon } from '../../components/icons';
+import { GradientBlobs } from '../../components/decor/GradientBlobs';
 
 const FEATURE_GROUPS = [
   {
     title: 'Studenten & kamers',
+    icon: UsersIcon,
     items: [
       'Kamerbeheer met bewoners en beschikbaarheid',
       'Eigen inlog per student, gekoppeld aan hun kamer',
@@ -13,6 +15,7 @@ const FEATURE_GROUPS = [
   },
   {
     title: 'Schoonmaak',
+    icon: SparklesIcon,
     items: [
       'Automatisch roulerend schoonmaakrooster',
       'Eigen account en dashboard voor de schoonmaakploeg',
@@ -22,6 +25,7 @@ const FEATURE_GROUPS = [
   },
   {
     title: 'Financieel',
+    icon: BanknotesIcon,
     items: [
       'Automatische maandelijkse huurfacturatie',
       'Betaalherinneringen via e-mail en WhatsApp',
@@ -31,6 +35,7 @@ const FEATURE_GROUPS = [
   },
   {
     title: 'Communicatie',
+    icon: MegaphoneIcon,
     items: [
       'Aankondigingen naar alle studenten',
       'Klachten tussen student en beheerder, in beide richtingen',
@@ -43,17 +48,23 @@ const FEATURE_GROUPS = [
 export function FeaturesPricingPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Functies & Prijzen</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-stone-600">
-          Alles wat je als verhuurder nodig hebt om je pand te beheren, gebundeld in één dashboard.
-        </p>
+      <div className="relative isolate overflow-hidden">
+        <GradientBlobs />
+        <div className="py-6 text-center">
+          <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Functies & Prijzen</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-stone-600">
+            Alles wat je als verhuurder nodig hebt om je pand te beheren, gebundeld in één dashboard.
+          </p>
+        </div>
       </div>
 
       <div className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-2">
         {FEATURE_GROUPS.map((group) => (
           <div key={group.title} className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
-            <h2 className="font-semibold text-stone-800">{group.title}</h2>
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+              <group.icon className="h-6 w-6" />
+            </span>
+            <h2 className="mt-4 font-semibold text-stone-800">{group.title}</h2>
             <ul className="mt-4 space-y-2.5">
               {group.items.map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm text-stone-600">

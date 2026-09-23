@@ -8,6 +8,7 @@ import {
   WrenchIcon,
 } from '../../components/icons';
 import { BrowserFrame } from '../../components/BrowserFrame';
+import { GradientBlobs } from '../../components/decor/GradientBlobs';
 
 const FEATURES = [
   {
@@ -63,7 +64,8 @@ const STEPS = [
 export function HomePage() {
   return (
     <div>
-      <section className="mx-auto max-w-6xl px-6 pb-16 pt-20 text-center">
+      <section className="relative isolate mx-auto max-w-6xl overflow-hidden px-6 pb-16 pt-20 text-center">
+        <GradientBlobs />
         <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
           Verhuur je kamers zonder chaos
         </h1>

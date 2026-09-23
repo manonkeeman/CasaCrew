@@ -1,17 +1,29 @@
 import { Link } from 'react-router-dom';
+import { GradientBlobs } from '../../components/decor/GradientBlobs';
+import { HouseIllustration } from '../../components/illustrations/HouseIllustration';
 
 export function AboutPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Over CasaCrew</h1>
+    <div>
+      <div className="relative isolate overflow-hidden">
+        <GradientBlobs />
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-10 px-6 py-16 md:grid-cols-5">
+          <div className="md:col-span-3">
+            <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Over CasaCrew</h1>
+            <p className="mt-6 text-lg text-stone-600">
+              CasaCrew is software voor mensen die kamers verhuren — of het nu om een enkel
+              studentenhuis gaat of meerdere panden. In plaats van losse spreadsheets, WhatsApp-
+              groepen en briefjes op de koelkast, geeft CasaCrew elke verhuurder één plek voor
+              kamers, huurders, schoonmaak, facturen en communicatie.
+            </p>
+          </div>
+          <div className="hidden justify-center text-emerald-700 md:col-span-2 md:flex">
+            <HouseIllustration className="h-48 w-48" />
+          </div>
+        </div>
+      </div>
 
-      <p className="mt-6 text-lg text-stone-600">
-        CasaCrew is software voor mensen die kamers verhuren — of het nu om een enkel
-        studentenhuis gaat of meerdere panden. In plaats van losse spreadsheets, WhatsApp-groepen
-        en briefjes op de koelkast, geeft CasaCrew elke verhuurder één plek voor kamers, huurders,
-        schoonmaak, facturen en communicatie.
-      </p>
-
+      <div className="mx-auto max-w-3xl px-6 pb-16">
       <h2 className="mt-10 text-xl font-semibold text-stone-800">Voor wie is dit?</h2>
       <p className="mt-3 text-stone-600">
         CasaCrew is gebouwd voor verhuurders die kamers beheren met wisselende bewoners: denk aan
@@ -44,6 +56,7 @@ export function AboutPage() {
             Neem contact op
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );
