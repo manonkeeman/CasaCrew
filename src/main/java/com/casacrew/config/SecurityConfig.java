@@ -54,7 +54,7 @@ public class SecurityConfig {
 
     public SecurityConfig(
             SessionAuthenticationFilter sessionAuthenticationFilter,
-            @Value("${app.cors.allowed-origins:http://localhost:5173,https://*.netlify.app,https://casacrew.nl,https://www.casacrew.nl}")
+            @Value("${app.cors.allowed-origins:http://localhost:5190,https://casacrew.nl,https://www.casacrew.nl,https://casacrew.netlify.app}")
             String allowedOrigins
     ) {
         this.sessionAuthenticationFilter = sessionAuthenticationFilter;
@@ -135,7 +135,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .referrerPolicy(referrer -> referrer.policy(
+                                org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                );
 
         http.addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -149,7 +153,11 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(8);
+        // BCrypt slaat de kostenfactor in de hash zelf op, dus een hogere
+        // waarde hier breekt het verifiëren van al bestaande wachtwoorden
+        // niet -- alleen nieuwe/gewijzigde wachtwoorden gebruiken de nieuwe,
+        // duurdere factor.
+        return new BCryptPasswordEncoder(10);
     }
 
     private List<String> parseAllowedOrigins() {

@@ -46,7 +46,7 @@ public class TaskPhotosController {
         this.cleaningTaskRepository = cleaningTaskRepository;
         this.userRepository = userRepository;
         this.userService = userService;
-        this.uploadDir = Paths.get(uploadDir, "task-photos").toAbsolutePath().normalize();
+        this.uploadDir = Paths.get(uploadDir, "public", "task-photos").toAbsolutePath().normalize();
     }
 
     @GetMapping("/task/{taskId}")

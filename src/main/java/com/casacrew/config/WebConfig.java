@@ -16,9 +16,16 @@ public class WebConfig implements WebMvcConfigurer {
         this.uploadDir = uploadDir;
     }
 
+    // Deze handler wijst UITSLUITEND naar de "public"-submap, niet naar de
+    // hele upload-root. Profielfoto's en taakfoto's horen hier thuis (ze
+    // worden rechtstreeks als <img src> geladen, zonder auth-header).
+    // Contracten en documenten staan in een "private"-submap die deze
+    // handler bewust niet kent -- die zijn alleen bereikbaar via de
+    // geauthenticeerde download-endpoints, die rechtstreeks van schijf
+    // lezen en dus niet van deze static-resource-mapping afhangen.
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String absolutePath = Paths.get(uploadDir).toAbsolutePath().normalize().toUri().toString();
+        String absolutePath = Paths.get(uploadDir, "public").toAbsolutePath().normalize().toUri().toString();
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("classpath:/static/uploads/", absolutePath + "/");
     }

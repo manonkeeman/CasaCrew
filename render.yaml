@@ -35,4 +35,4 @@ services:
           name: casacrew-db
           property: password
       - key: APP_CORS_ALLOWED_ORIGINS
-        value: "https://*.vercel.app,https://*.netlify.app,http://localhost:5173,https://casacrew.nl,https://www.casacrew.nl"
+        value: "https://casacrew.nl,https://www.casacrew.nl,https://casacrew.netlify.app,http://localhost:5190"

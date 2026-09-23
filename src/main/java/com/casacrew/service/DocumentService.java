@@ -226,8 +226,11 @@ public class DocumentService {
         }
     }
 
+    // Documenten staan in de "private"-submap, buiten bereik van de publieke
+    // static-resource-mapping in WebConfig -- alleen bereikbaar via
+    // download(), dat organization- en rol-toegang server-side afdwingt.
     private Path ensureUploadDirectory() {
-        Path uploadDir = Paths.get(uploadDirPath).toAbsolutePath().normalize();
+        Path uploadDir = Paths.get(uploadDirPath, "private", "documents").toAbsolutePath().normalize();
         try {
             Files.createDirectories(uploadDir);
         } catch (IOException e) {

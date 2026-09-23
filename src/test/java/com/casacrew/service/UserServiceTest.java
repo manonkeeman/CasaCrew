@@ -482,7 +482,7 @@ class UserServiceTest {
         UserResponseDTO result = userService.uploadMyProfilePhoto(file);
 
         assertThat(result.profileImagePath()).endsWith(".png");
-        assertThat(Files.exists(tempUploadDir.resolve(result.profileImagePath()))).isTrue();
+        assertThat(Files.exists(tempUploadDir.resolve("public").resolve(result.profileImagePath()))).isTrue();
     }
 
 
@@ -491,7 +491,8 @@ class UserServiceTest {
         User me = makeUser(1L, "student", "s@test.com", User.Role.STUDENT);
         authenticateAs("s@test.com", false);
         when(userRepository.findByEmailIgnoreCase("s@test.com")).thenReturn(Optional.of(me));
-        Path existing = tempUploadDir.resolve("existing.png");
+        Path existing = tempUploadDir.resolve("public").resolve("existing.png");
+        Files.createDirectories(existing.getParent());
         Files.writeString(existing, "data");
         me.setProfileImagePath("existing.png");
 
@@ -523,7 +524,7 @@ class UserServiceTest {
         UserResponseDTO result = userService.uploadContract(2L, file);
 
         assertThat(result.contractFile()).endsWith(".pdf");
-        assertThat(Files.exists(tempUploadDir.resolve(result.contractFile()))).isTrue();
+        assertThat(Files.exists(tempUploadDir.resolve("private").resolve(result.contractFile()))).isTrue();
     }
 
     @Test

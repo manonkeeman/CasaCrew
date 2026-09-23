@@ -71,6 +71,11 @@ public class UserService implements UserDetailsService {
     private final OrganizationRepository organizationRepository;
     private final CleaningScheduleService cleaningScheduleService;
     private final Path uploadDir;
+    // Profielfoto's: publiek bereikbaar via /uploads/** (nodig voor <img src>).
+    private final Path publicUploadDir;
+    // Contracten: NOOIT via de publieke static-resource-mapping bereikbaar --
+    // alleen via resolveContractPath(), dat ownership server-side afdwingt.
+    private final Path privateUploadDir;
 
     public UserService(
             UserRepository userRepository,
@@ -98,6 +103,8 @@ public class UserService implements UserDetailsService {
         this.authSessionService = authSessionService;
         this.cleaningScheduleService = cleaningScheduleService;
         this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.publicUploadDir = this.uploadDir.resolve("public");
+        this.privateUploadDir = this.uploadDir.resolve("private");
     }
 
     @Override
@@ -363,13 +370,13 @@ public class UserService implements UserDetailsService {
         User me = currentUser();
 
         try {
-            Files.createDirectories(uploadDir);
+            Files.createDirectories(publicUploadDir);
 
             String extension = determineImageExtension(contentType);
             String filename = "profile_" + me.getId() + "_" + UUID.randomUUID() + extension;
-            Path targetPath = uploadDir.resolve(filename).normalize();
+            Path targetPath = publicUploadDir.resolve(filename).normalize();
 
-            if (!targetPath.startsWith(uploadDir)) {
+            if (!targetPath.startsWith(publicUploadDir)) {
                 throw new IllegalArgumentException("Invalid file path");
             }
 
@@ -377,7 +384,7 @@ public class UserService implements UserDetailsService {
                 Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            deleteFileQuietly(me.getProfileImagePath());
+            deleteFileQuietly(publicUploadDir, me.getProfileImagePath());
             me.setProfileImagePath(filename);
             return toDTO(me);
         } catch (IOException exception) {
@@ -387,7 +394,7 @@ public class UserService implements UserDetailsService {
 
     public UserResponseDTO deleteMyProfilePhoto() {
         User me = currentUser();
-        deleteFileQuietly(me.getProfileImagePath());
+        deleteFileQuietly(publicUploadDir, me.getProfileImagePath());
         me.setProfileImagePath(null);
         return toDTO(me);
     }
@@ -410,12 +417,12 @@ public class UserService implements UserDetailsService {
         User student = findUserByIdOrThrow(studentId);
 
         try {
-            Files.createDirectories(uploadDir);
+            Files.createDirectories(privateUploadDir);
 
             String filename = "contract_" + student.getId() + "_" + UUID.randomUUID() + ".pdf";
-            Path targetPath = uploadDir.resolve(filename).normalize();
+            Path targetPath = privateUploadDir.resolve(filename).normalize();
 
-            if (!targetPath.startsWith(uploadDir)) {
+            if (!targetPath.startsWith(privateUploadDir)) {
                 throw new IllegalArgumentException("Invalid file path");
             }
 
@@ -423,7 +430,7 @@ public class UserService implements UserDetailsService {
                 Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            deleteFileQuietly(student.getContractFile());
+            deleteFileQuietly(privateUploadDir, student.getContractFile());
             student.setContractFile(filename);
             return toDTO(student);
         } catch (IOException exception) {
@@ -433,7 +440,7 @@ public class UserService implements UserDetailsService {
 
     public UserResponseDTO deleteContract(Long studentId) {
         User student = findUserByIdOrThrow(studentId);
-        deleteFileQuietly(student.getContractFile());
+        deleteFileQuietly(privateUploadDir, student.getContractFile());
         student.setContractFile(null);
         return toDTO(student);
     }
@@ -454,8 +461,8 @@ public class UserService implements UserDetailsService {
             throw new EntityNotFoundException("Geen contract gevonden voor deze gebruiker.");
         }
 
-        Path filePath = uploadDir.resolve(student.getContractFile()).normalize();
-        if (!filePath.startsWith(uploadDir)) {
+        Path filePath = privateUploadDir.resolve(student.getContractFile()).normalize();
+        if (!filePath.startsWith(privateUploadDir)) {
             throw new IllegalArgumentException("Invalid file path");
         }
         return filePath;
@@ -523,14 +530,14 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
     }
 
-    private void deleteFileQuietly(String relativePath) {
+    private void deleteFileQuietly(Path baseDir, String relativePath) {
         if (!hasText(relativePath)) {
             return;
         }
 
         try {
-            Path path = uploadDir.resolve(relativePath).normalize();
-            if (path.startsWith(uploadDir)) {
+            Path path = baseDir.resolve(relativePath).normalize();
+            if (path.startsWith(baseDir)) {
                 Files.deleteIfExists(path);
             }
         } catch (Exception ignored) {
