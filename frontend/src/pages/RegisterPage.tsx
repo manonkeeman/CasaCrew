@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ApiError } from '../lib/apiClient';
 import { Banner, Button, Field, Input } from '../components/ui';
+import { LogoMark } from '../components/LogoMark';
 
 export function RegisterPage() {
   const { register, role } = useAuth();
@@ -43,7 +44,10 @@ export function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-sand px-4 py-10">
       <div className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-8 shadow-sm shadow-stone-200/50">
-        <h1 className="mb-1 text-xl font-bold text-emerald-700">CasaCrew</h1>
+        <h1 className="mb-1 flex items-center gap-2 text-xl font-bold text-emerald-700">
+          <LogoMark className="h-8 w-8" />
+          CasaCrew
+        </h1>
         <p className="mb-6 text-sm text-stone-500">Richt je huis in als beheerder</p>
         {error && <Banner kind="error" message={error} />}
         <form onSubmit={handleSubmit}>

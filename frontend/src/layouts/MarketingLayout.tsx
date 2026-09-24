@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import { LogoMark } from '../components/LogoMark';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home' },
@@ -12,7 +13,8 @@ export function MarketingLayout() {
     <div className="flex min-h-screen flex-col bg-sand">
       <header className="border-b border-stone-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link to="/" className="text-xl font-bold text-emerald-700">
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-emerald-700">
+            <LogoMark className="h-8 w-8" />
             CasaCrew
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
@@ -68,7 +70,10 @@ export function MarketingLayout() {
         <div className="mx-auto max-w-6xl px-6 py-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div>
-              <p className="text-lg font-bold text-emerald-700">CasaCrew</p>
+              <p className="flex items-center gap-2 text-lg font-bold text-emerald-700">
+                <LogoMark className="h-7 w-7" />
+                CasaCrew
+              </p>
               <p className="mt-1 max-w-xs text-sm text-stone-500">
                 Slim beheer voor verhuurpanden: kamers, huurders, schoonmaak en facturatie in één dashboard.
               </p>

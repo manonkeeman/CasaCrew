@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { isPushSupported, isSubscribed, subscribeToWebPush } from '../lib/push';
 import { assetUrl } from '../lib/apiClient';
 import { Avatar } from '../components/Avatar';
+import { LogoMark } from '../components/LogoMark';
 
 interface NavItem {
   to: string;
@@ -59,7 +60,10 @@ export function DashboardLayout({ title, navItems }: { title: string; navItems: 
     <div className="flex min-h-screen">
       <aside className="flex w-60 shrink-0 flex-col bg-emerald-900">
         <div className="border-b border-emerald-800 px-5 py-5">
-          <p className="text-lg font-bold text-white">CasaCrew</p>
+          <p className="flex items-center gap-2 text-lg font-bold text-white">
+            <LogoMark className="h-7 w-7" />
+            CasaCrew
+          </p>
           <p className="text-xs text-emerald-300">{title}</p>
         </div>
         <PushOptIn />
