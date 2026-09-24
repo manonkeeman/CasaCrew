@@ -11,7 +11,7 @@ export function AboutPage() {
           <div className="md:col-span-3">
             <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Over CasaCrew</h1>
             <p className="mt-6 text-lg text-stone-600">
-              CasaCrew is software voor mensen die kamers verhuren — of het nu om een enkel
+              CasaCrew is software voor mensen die kamers verhuren, of het nu om een enkel
               studentenhuis gaat of meerdere panden. In plaats van losse spreadsheets, WhatsApp-
               groepen en briefjes op de koelkast, geeft CasaCrew elke verhuurder één plek voor
               kamers, huurders, schoonmaak, facturen en communicatie.
@@ -28,7 +28,7 @@ export function AboutPage() {
       <p className="mt-3 text-stone-600">
         CasaCrew is gebouwd voor verhuurders die kamers beheren met wisselende bewoners: denk aan
         studentenhuizen, kamerverhuur en soortgelijke woonvormen. Elke verhuurder registreert zijn
-        eigen, volledig gescheiden omgeving — jouw kamers, huurders en gegevens zijn nooit
+        eigen, volledig gescheiden omgeving. Jouw kamers, huurders en gegevens zijn nooit
         zichtbaar voor een andere verhuurder op het platform.
       </p>
 
@@ -36,7 +36,7 @@ export function AboutPage() {
       <p className="mt-3 text-stone-600">
         Na registratie doorloop je een korte setup-wizard: huisprofiel, kamers, huurinstellingen,
         betaalgegevens, huisregels, en het toevoegen van studenten en een schoonmaakaccount. Daarna
-        heeft iedereen — beheerder, student en schoonmaakploeg — zijn eigen dashboard met precies
+        heeft iedereen (beheerder, student en schoonmaakploeg) zijn eigen dashboard met precies
         de informatie en taken die voor hen relevant zijn.
       </p>
 

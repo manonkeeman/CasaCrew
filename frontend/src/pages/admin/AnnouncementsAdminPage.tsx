@@ -106,7 +106,7 @@ export function AnnouncementsAdminPage() {
             </div>
             <h3 className="font-semibold text-slate-800">{a.title}</h3>
             <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{a.body}</p>
-            {a.author && <p className="mt-2 text-xs text-slate-400">— {a.author}</p>}
+            {a.author && <p className="mt-2 text-xs text-slate-400">Door {a.author}</p>}
           </Card>
         ))}
         {announcements.length === 0 && <p className="text-sm text-slate-400">Nog geen aankondigingen.</p>}

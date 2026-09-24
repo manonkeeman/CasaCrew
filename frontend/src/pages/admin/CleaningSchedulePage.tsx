@@ -84,7 +84,7 @@ export function CleaningSchedulePage() {
 
       {info && (
         <p className="mb-6 text-sm text-slate-500">
-          Huidige ISO-week {info.isoWeek} ({info.year}) — rotatieweek {info.rotationWeek} van {info.rotationLength}
+          Huidige ISO-week {info.isoWeek} ({info.year}), rotatieweek {info.rotationWeek} van {info.rotationLength}
         </p>
       )}
 

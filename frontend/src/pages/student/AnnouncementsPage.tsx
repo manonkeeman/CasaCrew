@@ -32,7 +32,7 @@ export function AnnouncementsPage() {
                   </div>
                   <h3 className="font-semibold text-stone-800">{a.title}</h3>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-stone-600">{a.body}</p>
-                  {a.author && <p className="mt-2 text-xs text-stone-400">— {a.author}</p>}
+                  {a.author && <p className="mt-2 text-xs text-stone-400">Door {a.author}</p>}
                 </div>
               </div>
             </Card>

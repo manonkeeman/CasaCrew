@@ -491,7 +491,7 @@ export function SetupWizardPage() {
         <div className="mb-8 text-center">
           <h1 className="text-xl font-bold text-emerald-700">Welkom bij CasaCrew</h1>
           <p className="mt-1 text-sm text-stone-500">
-            Richt je huis in — {status ? `${status.completedSteps} van ${status.totalSteps} stappen voltooid` : 'laden...'}
+            Richt je huis in: {status ? `${status.completedSteps} van ${status.totalSteps} stappen voltooid` : 'laden...'}
           </p>
         </div>
 

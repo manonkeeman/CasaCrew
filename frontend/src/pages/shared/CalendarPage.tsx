@@ -68,7 +68,7 @@ export function CalendarPage() {
             </p>
             <h3 className="font-semibold text-stone-800">{event.title}</h3>
             {event.description && <p className="mt-1 text-sm text-stone-600">{event.description}</p>}
-            {event.createdByUsername && <p className="mt-2 text-xs text-stone-400">— {event.createdByUsername}</p>}
+            {event.createdByUsername && <p className="mt-2 text-xs text-stone-400">Door {event.createdByUsername}</p>}
           </div>
           {canDelete(event) && (
             <button

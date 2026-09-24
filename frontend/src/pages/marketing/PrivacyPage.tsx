@@ -48,11 +48,11 @@ export function PrivacyPage() {
             werken ("subverwerkers"):
           </p>
           <ul className="mt-3 list-disc space-y-1.5 pl-5">
-            <li><strong>Render</strong> — hosting van de backend en de database</li>
-            <li><strong>Netlify</strong> — hosting van deze website en het dashboard</li>
-            <li>Een <strong>e-mailprovider</strong> — voor het versturen van herinneringen en meldingen</li>
-            <li><strong>Twilio</strong> — alleen als een huis WhatsApp-meldingen heeft ingeschakeld</li>
-            <li><strong>Google</strong> — alleen als je inlogt via "Inloggen met Google"</li>
+            <li><strong>Render</strong>: hosting van de backend en de database</li>
+            <li><strong>Netlify</strong>: hosting van deze website en het dashboard</li>
+            <li>Een <strong>e-mailprovider</strong>: voor het versturen van herinneringen en meldingen</li>
+            <li><strong>Twilio</strong>: alleen als een huis WhatsApp-meldingen heeft ingeschakeld</li>
+            <li><strong>Google</strong>: alleen als je inlogt via "Inloggen met Google"</li>
           </ul>
         </section>
 
@@ -64,7 +64,7 @@ export function PrivacyPage() {
             Elke beheerdersomgeving is technisch afgescheiden van andere klanten: de gegevens van
             het ene huis zijn nooit zichtbaar voor een ander huis. Gevoelige bestanden zoals
             huurcontracten en documenten zijn alleen toegankelijk voor ingelogde, geautoriseerde
-            gebruikers — niet via een openbare link.
+            gebruikers, niet via een openbare link.
           </p>
         </section>
 

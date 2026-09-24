@@ -72,7 +72,7 @@ export function HomePage() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-stone-600">
             CasaCrew geeft elke verhuurder een eigen dashboard voor kamers, huurders, schoonmaak,
-            facturen en communicatie — overzichtelijk op één plek.
+            facturen en communicatie, overzichtelijk op één plek.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -124,7 +124,7 @@ export function HomePage() {
             </h2>
             <p className="mt-3 text-stone-600">
               Zie in één oogopslag wie waar woont, welke huur nog openstaat en waar contracten
-              bijna aflopen — zonder losse spreadsheets bij te houden.
+              bijna aflopen, zonder losse spreadsheets bij te houden.
             </p>
           </div>
           <BrowserFrame
