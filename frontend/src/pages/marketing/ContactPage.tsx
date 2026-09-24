@@ -4,7 +4,7 @@ import { api, ApiError } from '../../lib/apiClient';
 import type { ContactRequest } from '../../lib/types';
 import { Banner, Button, Field, Input, Textarea } from '../../components/ui';
 import { GradientBlobs } from '../../components/decor/GradientBlobs';
-import { HouseIllustration } from '../../components/illustrations/HouseIllustration';
+import { MessageIllustration } from '../../components/illustrations/MessageIllustration';
 
 export function ContactPage() {
   const [success, setSuccess] = useState(false);
@@ -85,7 +85,7 @@ export function ContactPage() {
         </div>
 
         <div className="md:col-span-2">
-          <HouseIllustration className="h-28 w-28 text-emerald-600" />
+          <MessageIllustration className="h-40 w-full max-w-xs" />
           <h2 className="mt-4 font-semibold text-stone-800">Direct contact</h2>
           <p className="mt-2 text-sm text-stone-600">
             <a href="mailto:info@casacrew.nl" className="text-emerald-700 hover:underline">

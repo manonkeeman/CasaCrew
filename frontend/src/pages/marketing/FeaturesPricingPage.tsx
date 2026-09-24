@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BanknotesIcon, CheckIcon, MegaphoneIcon, SparklesIcon, UsersIcon } from '../../components/icons';
 import { GradientBlobs } from '../../components/decor/GradientBlobs';
+import { ChecklistIllustration } from '../../components/illustrations/ChecklistIllustration';
 
 const FEATURE_GROUPS = [
   {
@@ -50,11 +51,16 @@ export function FeaturesPricingPage() {
     <div className="mx-auto max-w-6xl px-6 py-16">
       <div className="relative isolate overflow-hidden">
         <GradientBlobs />
-        <div className="py-6 text-center">
-          <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Functies & Prijzen</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-stone-600">
-            Alles wat je als verhuurder nodig hebt om je pand te beheren, gebundeld in één dashboard.
-          </p>
+        <div className="grid grid-cols-1 items-center gap-8 py-6 md:grid-cols-5">
+          <div className="text-center md:col-span-3 md:text-left">
+            <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Functies & Prijzen</h1>
+            <p className="mx-auto mt-4 max-w-2xl text-stone-600 md:mx-0">
+              Alles wat je als verhuurder nodig hebt om je pand te beheren, gebundeld in één dashboard.
+            </p>
+          </div>
+          <div className="hidden justify-center md:col-span-2 md:flex">
+            <ChecklistIllustration className="h-64 w-full max-w-xs" />
+          </div>
         </div>
       </div>
 

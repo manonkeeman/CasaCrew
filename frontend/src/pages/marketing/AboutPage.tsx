@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { GradientBlobs } from '../../components/decor/GradientBlobs';
-import { HouseIllustration } from '../../components/illustrations/HouseIllustration';
+import { TeamIllustration } from '../../components/illustrations/TeamIllustration';
 
 export function AboutPage() {
   return (
@@ -17,8 +17,8 @@ export function AboutPage() {
               kamers, huurders, schoonmaak, facturen en communicatie.
             </p>
           </div>
-          <div className="hidden justify-center text-emerald-700 md:col-span-2 md:flex">
-            <HouseIllustration className="h-48 w-48" />
+          <div className="hidden justify-center md:col-span-2 md:flex">
+            <TeamIllustration className="h-64 w-full max-w-sm" />
           </div>
         </div>
       </div>
