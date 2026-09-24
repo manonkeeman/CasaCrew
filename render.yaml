@@ -11,6 +11,8 @@ services:
     dockerfilePath: ./Dockerfile
     plan: 0.5c-512mb
     healthCheckPath: /actuator/health
+    # Forceer een nieuwe Blueprint-sync zodat Render de disk hieronder opnieuw probeert
+    # aan te maken nu het compute-plan is geupgraded (eerdere sync faalde nog op Free-plan).
     disk:
       name: casacrew-uploads
       mountPath: /app/uploads
