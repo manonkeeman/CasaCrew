@@ -19,6 +19,10 @@ export function PaymentSettingsPage() {
       api.put<OrganizationPaymentSettings>('/api/admin/organization/payment-settings', body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payment-settings'] });
+      // Bepaalt of Facturen/Betalingen in de sidebar zichtbaar zijn (zie
+      // useAdminNav in App.tsx) -- zonder deze invalidatie blijven die
+      // verborgen totdat de app opnieuw laadt.
+      queryClient.invalidateQueries({ queryKey: ['onboarding-status'] });
       setSuccess('Opgeslagen.');
       setError(null);
     },

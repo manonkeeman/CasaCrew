@@ -1,5 +1,10 @@
+import { useQuery } from '@tanstack/react-query';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { api } from './lib/apiClient';
+import type { OnboardingStatus } from './lib/types';
+import { useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { CookieConsent } from './components/CookieConsent';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { MarketingLayout } from './layouts/MarketingLayout';
 import { HomePage } from './pages/marketing/HomePage';
@@ -124,8 +129,32 @@ const CLEANER_NAV = [
   { to: '/cleaner/documents', label: 'Documenten', icon: DocumentIcon },
 ];
 
+// Kaartrondes die alleen zinvol zijn als de beheerder betaalgegevens heeft
+// ingevuld (IBAN/bunq.me) -- zonder dat is er niets om een betaallink of
+// -herinnering op te baseren.
+const PAYMENT_DEPENDENT_PATHS = new Set(['/admin/invoices', '/admin/payments']);
+
+function useAdminNav(): typeof ADMIN_NAV {
+  const { role } = useAuth();
+  const statusQuery = useQuery({
+    queryKey: ['onboarding-status'],
+    queryFn: () => api.get<OnboardingStatus>('/api/admin/organization/onboarding-status'),
+    enabled: role === 'ROLE_ADMIN',
+  });
+
+  // Standaard zichtbaar tot het antwoord binnen is, zodat het menu niet
+  // even flikkert voor beheerders die betalen al lang hebben ingesteld.
+  const paymentsConfigured = statusQuery.data?.paymentSettingsComplete ?? true;
+
+  if (paymentsConfigured) return ADMIN_NAV;
+  return ADMIN_NAV.filter((item) => !PAYMENT_DEPENDENT_PATHS.has(item.to));
+}
+
 export default function App() {
+  const adminNav = useAdminNav();
+
   return (
+    <>
     <Routes>
       <Route element={<MarketingLayout />}>
         <Route path="/" element={<HomePage />} />
@@ -139,7 +168,7 @@ export default function App() {
 
       <Route element={<ProtectedRoute allow={['ROLE_ADMIN']} />}>
         <Route path="/admin/setup" element={<SetupWizardPage />} />
-        <Route element={<DashboardLayout title="Beheer" navItems={ADMIN_NAV} />}>
+        <Route element={<DashboardLayout title="Beheer" navItems={adminNav} />}>
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/students" element={<StudentsPage />} />
@@ -198,5 +227,7 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    <CookieConsent />
+    </>
   );
 }
