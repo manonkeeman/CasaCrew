@@ -20,12 +20,18 @@
   --color-emerald-950: #0d1b18;
 
   --color-sand: #faf7f2;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 :root {
   color-scheme: light;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  @apply bg-sand text-stone-900;
+  @apply bg-sand text-stone-900 antialiased;
 }

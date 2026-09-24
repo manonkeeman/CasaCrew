@@ -43,7 +43,7 @@ export function ContactPage() {
       <div className="relative isolate overflow-hidden">
         <GradientBlobs />
         <div className="mx-auto max-w-4xl px-6 py-16 text-center">
-          <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Contact</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">Contact</h1>
           <p className="mx-auto mt-4 max-w-xl text-stone-600">
             Vragen over CasaCrew of benieuwd of het bij jouw huis past? Stuur een bericht, we
             reageren zo snel mogelijk.

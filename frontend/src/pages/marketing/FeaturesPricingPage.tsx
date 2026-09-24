@@ -53,7 +53,7 @@ export function FeaturesPricingPage() {
         <GradientBlobs />
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-6 py-16 md:grid-cols-5">
           <div className="text-center md:col-span-3 md:text-left">
-            <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Functies & Prijzen</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">Functies & Prijzen</h1>
             <p className="mx-auto mt-4 max-w-2xl text-stone-600 md:mx-0">
               Alles wat je als verhuurder nodig hebt om je pand te beheren, gebundeld in één dashboard.
             </p>
@@ -93,7 +93,7 @@ export function FeaturesPricingPage() {
           </p>
           <Link
             to="/contact"
-            className="mt-6 inline-block rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700"
+            className="mt-6 inline-block rounded-full bg-emerald-600 px-7 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-700 active:scale-95"
           >
             Vraag een demo aan
           </Link>

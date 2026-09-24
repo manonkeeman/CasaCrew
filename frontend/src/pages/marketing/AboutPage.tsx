@@ -9,7 +9,7 @@ export function AboutPage() {
         <GradientBlobs />
         <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-10 px-6 py-16 md:grid-cols-5">
           <div className="md:col-span-3">
-            <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Over CasaCrew</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">Over CasaCrew</h1>
             <p className="mt-6 text-lg text-stone-600">
               CasaCrew is software voor mensen die kamers verhuren, of het nu om een enkel
               studentenhuis gaat of meerdere panden. In plaats van losse spreadsheets, WhatsApp-
@@ -45,13 +45,13 @@ export function AboutPage() {
         <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
           <Link
             to="/register"
-            className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700"
+            className="rounded-full bg-emerald-600 px-7 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-700 active:scale-95"
           >
             Start gratis
           </Link>
           <Link
             to="/contact"
-            className="rounded-xl border border-stone-300 px-6 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            className="rounded-full border border-stone-300 px-7 py-3 text-sm font-semibold text-stone-700 transition-all duration-200 hover:scale-[1.03] hover:bg-stone-50 active:scale-95"
           >
             Neem contact op
           </Link>

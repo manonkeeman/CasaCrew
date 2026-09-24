@@ -11,7 +11,7 @@ const NAV_LINKS = [
 export function MarketingLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-sand">
-      <header className="border-b border-stone-200 bg-white/80 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-white/70 backdrop-blur-md transition-shadow">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold text-emerald-700">
             <LogoMark className="h-8 w-8" />
@@ -24,7 +24,7 @@ export function MarketingLayout() {
                 to={link.to}
                 end={link.to === '/'}
                 className={({ isActive }) =>
-                  `text-sm font-medium ${isActive ? 'text-emerald-700' : 'text-stone-600 hover:text-emerald-700'}`
+                  `text-sm font-medium transition-colors duration-200 ${isActive ? 'text-emerald-700' : 'text-stone-600 hover:text-emerald-700'}`
                 }
               >
                 {link.label}
@@ -34,13 +34,13 @@ export function MarketingLayout() {
           <div className="flex items-center gap-3">
             <Link
               to="/login"
-              className="text-sm font-medium text-stone-600 hover:text-emerald-700"
+              className="text-sm font-medium text-stone-600 transition-colors duration-200 hover:text-emerald-700"
             >
               Inloggen
             </Link>
             <Link
               to="/register"
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700"
+              className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white shadow-sm shadow-emerald-900/10 transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-700 active:scale-95"
             >
               Start gratis
             </Link>
@@ -53,7 +53,7 @@ export function MarketingLayout() {
               to={link.to}
               end={link.to === '/'}
               className={({ isActive }) =>
-                `whitespace-nowrap text-sm font-medium ${isActive ? 'text-emerald-700' : 'text-stone-600'}`
+                `whitespace-nowrap text-sm font-medium transition-colors duration-200 ${isActive ? 'text-emerald-700' : 'text-stone-600'}`
               }
             >
               {link.label}
@@ -97,10 +97,18 @@ export function MarketingLayout() {
               </div>
             </div>
           </div>
-          <p className="mt-8 text-xs text-stone-400">
-            &copy; {new Date().getFullYear()} CasaCrew. Alle rechten voorbehouden. ·{' '}
-            <Link to="/privacy" className="hover:text-emerald-700">Privacyverklaring</Link>
-          </p>
+        </div>
+        <div className="border-t border-stone-200">
+          <div className="mx-auto max-w-6xl px-6 py-5 text-xs text-stone-500">
+            <p>
+              Copyright &copy; {new Date().getFullYear()} CasaCrew. Alle rechten voorbehouden.
+              {' · '}
+              <Link to="/privacy" className="hover:text-emerald-700 hover:underline">Privacybeleid</Link>
+              {' · '}
+              <Link to="/contact" className="hover:text-emerald-700 hover:underline">Contact</Link>
+            </p>
+            <p className="mt-1">Nederland</p>
+          </div>
         </div>
       </footer>
     </div>

@@ -67,7 +67,7 @@ export function HomePage() {
       <div className="relative isolate overflow-hidden">
         <GradientBlobs />
         <div className="mx-auto max-w-6xl px-6 pb-16 pt-20 text-center">
-          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
+          <h1 className="mx-auto max-w-3xl text-5xl font-extrabold tracking-tight text-stone-900 sm:text-6xl">
             Verhuur je kamers zonder chaos
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-stone-600">
@@ -77,13 +77,13 @@ export function HomePage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/register"
-              className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700"
+              className="rounded-full bg-emerald-600 px-7 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-700 active:scale-95"
             >
               Start gratis
             </Link>
             <Link
               to="/functies"
-              className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+              className="rounded-full border border-stone-300 bg-white px-7 py-3 text-sm font-semibold text-stone-700 transition-all duration-200 hover:scale-[1.03] hover:bg-stone-50 active:scale-95"
             >
               Bekijk functies
             </Link>
@@ -172,13 +172,13 @@ export function HomePage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/register"
-              className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+              className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-emerald-700 transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-50 active:scale-95"
             >
               Start gratis
             </Link>
             <Link
               to="/contact"
-              className="rounded-xl border border-emerald-300 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-600"
+              className="rounded-full border border-emerald-300 px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-600 active:scale-95"
             >
               Neem contact op
             </Link>
