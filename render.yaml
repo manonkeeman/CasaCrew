@@ -9,8 +9,12 @@ services:
     name: casacrew-backend
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: free
+    plan: 0.5c-512mb
     healthCheckPath: /actuator/health
+    disk:
+      name: casacrew-uploads
+      mountPath: /app/uploads
+      sizeGB: 1
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
