@@ -64,38 +64,40 @@ const STEPS = [
 export function HomePage() {
   return (
     <div>
-      <section className="relative isolate mx-auto max-w-6xl overflow-hidden px-6 pb-16 pt-20 text-center">
+      <div className="relative isolate overflow-hidden">
         <GradientBlobs />
-        <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
-          Verhuur je kamers zonder chaos
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg text-stone-600">
-          CasaCrew geeft elke verhuurder een eigen dashboard voor kamers, huurders, schoonmaak,
-          facturen en communicatie — overzichtelijk op één plek.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            to="/register"
-            className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700"
-          >
-            Start gratis
-          </Link>
-          <Link
-            to="/functies"
-            className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-          >
-            Bekijk functies
-          </Link>
-        </div>
+        <div className="mx-auto max-w-6xl px-6 pb-16 pt-20 text-center">
+          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
+            Verhuur je kamers zonder chaos
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-stone-600">
+            CasaCrew geeft elke verhuurder een eigen dashboard voor kamers, huurders, schoonmaak,
+            facturen en communicatie — overzichtelijk op één plek.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              to="/register"
+              className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700"
+            >
+              Start gratis
+            </Link>
+            <Link
+              to="/functies"
+              className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            >
+              Bekijk functies
+            </Link>
+          </div>
 
-        <div className="mx-auto mt-14 max-w-4xl">
-          <BrowserFrame
-            src="/images/dashboard-preview.png"
-            alt="CasaCrew beheerdersdashboard met studenten, kamers en openstaande facturen"
-            url="casacrew.nl/admin/dashboard"
-          />
+          <div className="mx-auto mt-14 max-w-4xl">
+            <BrowserFrame
+              src="/images/dashboard-preview.png"
+              alt="CasaCrew beheerdersdashboard met studenten, kamers en openstaande facturen"
+              url="casacrew.nl/admin/dashboard"
+            />
+          </div>
         </div>
-      </section>
+      </div>
 
       <section className="border-y border-stone-200 bg-white py-16">
         <div className="mx-auto max-w-6xl px-6">
