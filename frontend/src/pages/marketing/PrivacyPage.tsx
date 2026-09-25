@@ -1,7 +1,7 @@
 export function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">Privacyverklaring</h1>
+    <div className="mx-auto max-w-3xl bg-white px-6 py-24">
+      <h1 className="text-5xl font-extrabold tracking-tight text-stone-900">Privacyverklaring</h1>
       <p className="mt-3 text-sm text-stone-500">Laatst bijgewerkt: 23 september 2026</p>
 
       <div className="mt-8 space-y-8 text-stone-600">

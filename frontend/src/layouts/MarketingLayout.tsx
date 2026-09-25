@@ -10,7 +10,7 @@ const NAV_LINKS = [
 
 export function MarketingLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-sand">
+    <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-white/70 backdrop-blur-md transition-shadow">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold text-emerald-700">

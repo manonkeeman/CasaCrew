@@ -8,7 +8,6 @@ import {
   WrenchIcon,
 } from '../../components/icons';
 import { BrowserFrame } from '../../components/BrowserFrame';
-import { GradientBlobs } from '../../components/decor/GradientBlobs';
 
 const FEATURES = [
   {
@@ -63,66 +62,63 @@ const STEPS = [
 
 export function HomePage() {
   return (
-    <div>
-      <div className="relative isolate overflow-hidden">
-        <GradientBlobs />
-        <div className="mx-auto max-w-6xl px-6 pb-16 pt-20 text-center">
-          <h1 className="mx-auto max-w-3xl text-5xl font-extrabold tracking-tight text-stone-900 sm:text-6xl">
-            Verhuur je kamers zonder chaos
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-stone-600">
-            CasaCrew geeft elke verhuurder een eigen dashboard voor kamers, huurders, schoonmaak,
-            facturen en communicatie, overzichtelijk op één plek.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              to="/register"
-              className="rounded-full bg-emerald-600 px-7 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-700 active:scale-95"
-            >
-              Start gratis
-            </Link>
-            <Link
-              to="/functies"
-              className="rounded-full border border-stone-300 bg-white px-7 py-3 text-sm font-semibold text-stone-700 transition-all duration-200 hover:scale-[1.03] hover:bg-stone-50 active:scale-95"
-            >
-              Bekijk functies
-            </Link>
-          </div>
+    <div className="bg-white">
+      <div className="mx-auto max-w-5xl px-6 pb-20 pt-24 text-center sm:pt-32">
+        <h1 className="mx-auto max-w-3xl text-6xl font-extrabold tracking-tight text-stone-900 sm:text-7xl">
+          Verhuur je kamers zonder chaos
+        </h1>
+        <p className="mx-auto mt-6 max-w-xl text-xl text-stone-500">
+          CasaCrew geeft elke verhuurder een eigen dashboard voor kamers, huurders, schoonmaak,
+          facturen en communicatie, overzichtelijk op één plek.
+        </p>
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <Link
+            to="/register"
+            className="rounded-full bg-emerald-600 px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-700 active:scale-95"
+          >
+            Start gratis
+          </Link>
+          <Link
+            to="/functies"
+            className="rounded-full border border-stone-200 px-7 py-3 text-sm font-semibold text-stone-700 transition-all duration-200 hover:scale-[1.03] hover:bg-stone-50 active:scale-95"
+          >
+            Bekijk functies
+          </Link>
+        </div>
 
-          <div className="mx-auto mt-14 max-w-4xl">
-            <BrowserFrame
-              src="/images/dashboard-preview.png"
-              alt="CasaCrew beheerdersdashboard met studenten, kamers en openstaande facturen"
-              url="casacrew.nl/admin/dashboard"
-            />
-          </div>
+        <div className="mx-auto mt-20 max-w-4xl">
+          <BrowserFrame
+            src="/images/dashboard-preview.png"
+            alt="CasaCrew beheerdersdashboard met studenten, kamers en openstaande facturen"
+            url="casacrew.nl/admin/dashboard"
+          />
         </div>
       </div>
 
-      <section className="border-y border-stone-200 bg-white py-16">
+      <section className="bg-stone-50 py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-center text-2xl font-bold text-stone-900">Alles wat je nodig hebt, in één huis</h2>
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-center text-4xl font-extrabold tracking-tight text-stone-900">
+            Alles wat je nodig hebt, in één huis
+          </h2>
+          <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((feature) => (
-              <div key={feature.title} className="rounded-2xl border border-stone-200 p-6 shadow-sm shadow-stone-200/50">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <feature.icon className="h-5 w-5" />
-                </span>
-                <h3 className="mt-4 font-semibold text-stone-800">{feature.title}</h3>
-                <p className="mt-1.5 text-sm text-stone-500">{feature.description}</p>
+              <div key={feature.title} className="rounded-3xl bg-white p-8">
+                <feature.icon className="h-7 w-7 text-emerald-600" />
+                <h3 className="mt-5 text-lg font-semibold text-stone-900">{feature.title}</h3>
+                <p className="mt-2 text-stone-500">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
+      <section className="mx-auto max-w-6xl px-6 py-24">
+        <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2">
           <div>
-            <h2 className="text-2xl font-bold text-stone-900">
+            <h2 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
               Studenten en kamers in één overzicht
             </h2>
-            <p className="mt-3 text-stone-600">
+            <p className="mt-4 text-lg text-stone-500">
               Zie in één oogopslag wie waar woont, welke huur nog openstaat en waar contracten
               bijna aflopen, zonder losse spreadsheets bij te houden.
             </p>
@@ -135,25 +131,24 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-stone-200 bg-white py-16">
+      <section className="bg-stone-50 py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
+          <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2">
             <BrowserFrame
               src="/images/wizard-preview.png"
               alt="Setup-wizard voor het inrichten van een nieuw huis"
               url="casacrew.nl/admin/setup"
+              className="md:order-first"
             />
             <div>
-              <h2 className="text-2xl font-bold text-stone-900">Zo werkt het</h2>
-              <div className="mt-6 space-y-6">
+              <h2 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">Zo werkt het</h2>
+              <div className="mt-8 space-y-8">
                 {STEPS.map((item) => (
-                  <div key={item.step} className="flex gap-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
-                      {item.step}
-                    </span>
+                  <div key={item.step} className="flex gap-5">
+                    <span className="shrink-0 text-2xl font-extrabold text-emerald-600">{item.step}</span>
                     <div>
-                      <h3 className="font-semibold text-stone-800">{item.title}</h3>
-                      <p className="mt-1 text-sm text-stone-500">{item.description}</p>
+                      <h3 className="text-lg font-semibold text-stone-900">{item.title}</h3>
+                      <p className="mt-1 text-stone-500">{item.description}</p>
                     </div>
                   </div>
                 ))}
@@ -163,22 +158,22 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="bg-emerald-700">
-        <div className="mx-auto max-w-4xl px-6 py-16 text-center">
-          <h2 className="text-2xl font-bold text-white sm:text-3xl">Klaar om te beginnen?</h2>
-          <p className="mt-3 text-emerald-50">
+      <section className="bg-stone-950">
+        <div className="mx-auto max-w-4xl px-6 py-24 text-center">
+          <h2 className="text-4xl font-extrabold tracking-tight text-white">Klaar om te beginnen?</h2>
+          <p className="mt-4 text-lg text-stone-400">
             Richt je huis vandaag nog in, of neem contact op als je eerst vragen hebt.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/register"
-              className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-emerald-700 transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-50 active:scale-95"
+              className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-stone-950 transition-all duration-200 hover:scale-[1.03] hover:bg-stone-100 active:scale-95"
             >
               Start gratis
             </Link>
             <Link
               to="/contact"
-              className="rounded-full border border-emerald-300 px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.03] hover:bg-emerald-600 active:scale-95"
+              className="rounded-full border border-white/20 px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.03] hover:bg-white/10 active:scale-95"
             >
               Neem contact op
             </Link>
