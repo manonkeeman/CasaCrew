@@ -486,7 +486,7 @@ export function SetupWizardPage() {
   const isLastStep = stepIndex === STEPS.length - 1;
 
   return (
-    <div className="min-h-screen bg-sand px-4 py-10">
+    <div className="min-h-screen bg-stone-50 px-4 py-10">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 text-center">
           <h1 className="text-xl font-bold text-emerald-700">Welkom bij CasaCrew</h1>
@@ -524,7 +524,7 @@ export function SetupWizardPage() {
           })}
         </div>
 
-        <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm shadow-stone-200/50">
+        <div className="rounded-3xl bg-white p-8">
           {activeStep.render()}
         </div>
 

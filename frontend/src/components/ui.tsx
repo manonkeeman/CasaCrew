@@ -10,7 +10,7 @@ import type {
 
 export function Card({ title, children, actions }: { title?: string; children: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
+    <div className="rounded-3xl bg-white p-6">
       {(title || actions) && (
         <div className="mb-4 flex items-center justify-between">
           {title && <h2 className="text-lg font-semibold text-stone-800">{title}</h2>}
@@ -24,13 +24,13 @@ export function Card({ title, children, actions }: { title?: string; children: R
 
 export function Button({ variant = 'primary', className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' }) {
   const styles = {
-    primary: 'bg-emerald-600 text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700 disabled:bg-emerald-300',
+    primary: 'bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-300',
     secondary: 'bg-stone-100 text-stone-700 hover:bg-stone-200 disabled:text-stone-400',
     danger: 'bg-red-50 text-red-700 hover:bg-red-100 disabled:text-red-300',
   }[variant];
   return (
     <button
-      className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed ${styles} ${className}`}
+      className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-95 disabled:cursor-not-allowed disabled:hover:scale-100 ${styles} ${className}`}
       {...props}
     />
   );
@@ -101,16 +101,12 @@ export function StatCard({
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
 }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/50">
+    <div className="rounded-3xl bg-white p-6">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-stone-500">{label}</p>
-        {Icon && (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-            <Icon className="h-4 w-4" />
-          </span>
-        )}
+        {Icon && <Icon className="h-5 w-5 text-emerald-600" />}
       </div>
-      <p className="mt-1 text-2xl font-bold text-stone-800">{value}</p>
+      <p className="mt-2 text-3xl font-bold tracking-tight text-stone-900">{value}</p>
       {hint && <p className="mt-1 text-xs text-stone-400">{hint}</p>}
     </div>
   );

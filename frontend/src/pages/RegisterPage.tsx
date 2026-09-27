@@ -42,8 +42,8 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-sand px-4 py-10">
-      <div className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-8 shadow-sm shadow-stone-200/50">
+    <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4 py-10">
+      <div className="w-full max-w-sm rounded-3xl bg-white p-8">
         <h1 className="mb-1 flex items-center gap-2 text-xl font-bold text-emerald-700">
           <LogoMark className="h-8 w-8" />
           CasaCrew

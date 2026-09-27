@@ -97,7 +97,7 @@ export function DashboardLayout({ title, navItems }: { title: string; navItems: 
           </div>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto bg-stone-50 p-8">
         <Outlet />
       </main>
     </div>
